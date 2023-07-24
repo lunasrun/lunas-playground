@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import axios from 'axios'
+import MonacoEditor from 'monaco-editor-vue3'
+
 const text = ref('')
 const compiled_js = ref('')
 const compiled_css = ref('')
@@ -25,6 +27,7 @@ watch(text, async () => {
     errMsg.value = ''
     isErr.value = false
   }
+  setUrlParam()
 })
 
 function encode(inputString: string): string {
@@ -33,13 +36,51 @@ function encode(inputString: string): string {
 
   return base64String
 }
+
+const options = {
+  colorDecorators: true,
+  lineHeight: 24,
+  tabSize: 2,
+  minimap: { enabled: false }
+}
+
+onMounted(() => {
+  // get query param "code" by normal javascript
+  const url = new URL(window.location.href)
+  const code = url.searchParams.get('code')
+  if (code == '' || code == undefined) {
+    const defaultCode = `html:
+  <div>\${ message }</div>
+script:
+  const message = "Hello Blve"
+`
+    text.value = defaultCode
+    setUrlParam()
+  } else {
+    text.value = decodeURIComponent(escape(window.atob(decodeURIComponent(code))))
+  }
+})
+
+function setUrlParam() {
+  const url = new URL(window.location.href)
+  url.searchParams.set('code', encode(text.value))
+  window.history.pushState({}, '', url.toString())
+}
 </script>
 
 <template>
   <div class="wrapper">
     <div class="editor">
       <!-- 複数行かけるテキストエディタ -->
-      <textarea class="editor__text-field" v-model="text" rows="10" cols="50"></textarea>
+      <!-- <textarea  v-model="text" rows="10" cols="50"></textarea> -->
+      <MonacoEditor
+        theme="vs"
+        :options="options"
+        language="javascript"
+        width="100%"
+        height="100%"
+        v-model:value="text"
+      ></MonacoEditor>
     </div>
     <div class="preview">
       <div class="preview__tabs">
@@ -111,11 +152,6 @@ function encode(inputString: string): string {
   /* 左半分を占める */
   width: 50%;
   height: 100%;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
-  padding: 16px;
-  box-sizing: border-box;
 }
 .editor__text-field {
   width: 100%;
@@ -125,6 +161,14 @@ function encode(inputString: string): string {
   resize: none;
   font-size: 16px;
   font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+}
+.monaco-editor {
+  width: 50% !important;
+  height: 100% !important;
+}
+.monaco-editor-vue3 {
+  width: 100% !important;
+  height: 100% !important;
 }
 .preview {
   width: 50%;
