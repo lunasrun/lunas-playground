@@ -6,6 +6,10 @@ on:
 jobs:
   build-blve-wasm:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     steps:
       - run: git clone -b feat/if-block https://github.com/blvedev/blve.git
       - name: Use Node.js
@@ -49,8 +53,12 @@ jobs:
       - name: Build
         run: |
           npm run build
-      - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@4.1.1
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
         with:
-          branch: gh-pages
-          folder: ./dist
+          path: './dist'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
