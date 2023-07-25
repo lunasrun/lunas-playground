@@ -6,10 +6,6 @@ on:
 jobs:
   build-blve-wasm:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
     steps:
       - run: git clone -b feat/if-block https://github.com/blvedev/blve.git
       - name: Use Node.js
@@ -34,6 +30,10 @@ jobs:
           path: ./blve/crates/blve_compiler/pkg
   build-and-deploy-playground:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     needs: build-blve-wasm
     steps:
       - name: Checkout repo
