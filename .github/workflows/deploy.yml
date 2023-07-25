@@ -22,11 +22,12 @@ jobs:
       - name: Build
         run: |
           make build-web
+        working-directory: ./blve
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: blve-wasm-web-pkg
-          path: ./crates/blve_compiler/pkg
+          path: ./blve/crates/blve_compiler/pkg
   build-and-deploy-playground:
     runs-on: ubuntu-latest
     needs: build-blve-wasm
