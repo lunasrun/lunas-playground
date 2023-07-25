@@ -1,34 +1,55 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import axios from 'axios'
 import MonacoEditor from 'monaco-editor-vue3'
+import { compile } from './wasm'
+// import { compile } from 'blve-test-2/dist/wasm-compiler/blve_compiler'
 
 const text = ref('')
 const compiled_js = ref('')
-const compiled_css = ref('')
+const preview_js = ref('')
+const preview_css = ref('')
 const previewScreen = ref(0)
 const errMsg = ref('')
 const isErr = ref(false)
 
 watch(text, async () => {
-  const { js, css, err } = (
-    await axios.get<{
-      js?: string
-      css?: string
-      err?: string
-    }>(`http://localhost:8000/app?code=${encode(text.value)}`)
-  ).data
+  const { js, err } = blve_compile(text.value)
   if (err) {
     errMsg.value = err
     isErr.value = true
   } else {
     compiled_js.value = js as string
-    compiled_css.value = css as string
+    // compiled_css.value = css as string
     errMsg.value = ''
     isErr.value = false
+
+    const runtimeCompile = compile(text.value, true, './runtime.js')
+    preview_js.value = runtimeCompile.js
+    preview_css.value = runtimeCompile.css as string
   }
   setUrlParam()
 })
+
+function blve_compile(code: string): {
+  js: string | undefined
+  css: string | undefined
+  err: string | undefined
+} {
+  try {
+    const { js, css } = compile(code)
+    return {
+      js: js,
+      css: css,
+      err: undefined
+    }
+  } catch (e) {
+    return {
+      err: String(e),
+      js: undefined,
+      css: undefined
+    }
+  }
+}
 
 function encode(inputString: string): string {
   let base64String: string
@@ -42,6 +63,14 @@ const options = {
   lineHeight: 24,
   tabSize: 2,
   minimap: { enabled: false }
+}
+
+const readOnlyOptions = {
+  colorDecorators: true,
+  lineHeight: 24,
+  tabSize: 2,
+  minimap: { enabled: false },
+  readOnly: true
 }
 
 onMounted(() => {
@@ -122,10 +151,10 @@ function setUrlParam() {
         :srcdoc="`<html>
             <head>
               <style>
-                ${compiled_css}
+                ${preview_css}
               </style>
               <script type='module'>
-                import App from 'http://localhost:8000/app.js?code=${encode(text)}'
+                ${preview_js}
                 const app = document.querySelector('#app')
                 App(app)
               </script>
@@ -136,8 +165,26 @@ function setUrlParam() {
           </html>`"
       >
       </iframe>
-      <div v-if="previewScreen == 1" class="preview__text preview__content">{{ compiled_js }}</div>
-      <div v-if="previewScreen == 2" class="preview__content">{{ compiled_css }}</div>
+      <div v-if="previewScreen == 1" class="preview__text preview__content">
+        <MonacoEditor
+          theme="vs"
+          :options="readOnlyOptions"
+          language="javascript"
+          width="100%"
+          height="100%"
+          v-model:value="compiled_js"
+        ></MonacoEditor>
+      </div>
+      <div v-if="previewScreen == 2" class="preview__content">
+        <MonacoEditor
+          theme="vs"
+          :options="readOnlyOptions"
+          language="javascript"
+          width="100%"
+          height="100%"
+          v-model:value="preview_css"
+        ></MonacoEditor>
+      </div>
     </div>
   </div>
 </template>
