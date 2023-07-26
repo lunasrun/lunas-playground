@@ -2,6 +2,7 @@
 import { onMounted, ref, watch } from 'vue'
 import MonacoEditor from 'monaco-editor-vue3'
 import { compile } from './wasm'
+import { copyText } from './utils/copy'
 
 const text = ref('')
 const compiled_js = ref('')
@@ -27,7 +28,6 @@ watch(text, async () => {
     preview_js.value = runtimeCompile.js
     preview_css.value = runtimeCompile.css as string
   }
-  setUrlParam()
 })
 
 function blve_compile(code: string): {
@@ -88,17 +88,12 @@ style:
   }
 `
     text.value = defaultCode
-    setUrlParam()
   } else {
     text.value = decodeURIComponent(escape(window.atob(decodeURIComponent(code))))
+    url.searchParams.delete('code')
+    window.history.replaceState({}, '', url.toString())
   }
 })
-
-function setUrlParam() {
-  const url = new URL(window.location.href)
-  url.searchParams.set('code', encode(text.value))
-  window.history.pushState({}, '', url.toString())
-}
 
 const items = ref([
   { name: 'Data Binding with Style', file: '6.blv' },
@@ -126,6 +121,14 @@ function reload() {
     iframe.value.srcdoc += ''
   }
 }
+
+function share() {
+  const url = new URL(window.location.href)
+  url.searchParams.set('code', encode(text.value))
+  // url to string
+  const urlStr = url.toString()
+  copyText(urlStr)
+}
 </script>
 
 <template>
@@ -133,9 +136,18 @@ function reload() {
     <v-toolbar color="blue-lighten-5">
       <v-toolbar-title>Blve Playground</v-toolbar-title>
       <v-spacer></v-spacer>
-      <v-btn icon>
-        <v-icon>mdi-share-variant</v-icon>
-      </v-btn>
+      <v-menu>
+        <template v-slot:activator="{ props }">
+          <v-btn icon v-bind="props">
+            <v-icon>mdi-share-variant</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item @click="share">
+            <v-list-item-title>Copy Link for Sharing Code</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
       <v-btn @click="dialog = true"> Load Samples </v-btn>
     </v-toolbar>
     <div class="content">

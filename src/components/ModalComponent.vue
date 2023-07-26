@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <v-dialog v-model="dialog" persistent>
     <v-card>
       <v-card-title>{{ item.name }}</v-card-title>
@@ -14,3 +14,4 @@ import { ref } from 'vue'
 
 const dialog = ref(false)
 </script>
+ -->
