@@ -226,7 +226,7 @@ function share() {
   </div>
   <v-dialog v-model="dialog" max-width="600px">
     <v-card>
-      <v-card-title class="headline">Select an Item</v-card-title>
+      <v-card-title class="headline">Sample Codes</v-card-title>
 
       <v-card-text>
         <v-list-item-group>
