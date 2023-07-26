@@ -1,12 +1,11 @@
 html:
   <div>
-    <div :if="boolVal1">AAA</div>
-    <div>AAA</div>
-    <button @click="toggle">toggle</button>
-    <div>${boolVal1}</div>
+    <div>showBlock value: ${showBlock}</div>
+    <button @click="toggle">${ showBlock ? "Show" : "Hide" }</button>
+    <div :if="showBlock">THIS IS IF BLOCK</div>
   </div>
 script:
-  let boolVal1 = false
+  let showBlock = true
   function toggle() {
-    boolVal1 = !boolVal1
+    showBlock = !showBlock
   }

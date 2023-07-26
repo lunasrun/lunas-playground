@@ -1,17 +1,20 @@
 html:
   <div>
-    <h1 id='abc'>Hello Blve!</h1>
+    <h1 id='abc'>Stopwatch by Blve</h1>
     <div >${count}</div>
-    <button @click="increment">+1</button>
-    <button @click="clear">${interval==null?"start":"clear"}</button>
+    <button @click="toggle">${interval==null?"Start":"Stop"}</button>
+    <button @click="clear">Clear</button>
   </div>
 script:
   let count = 0
+  function clear(){
+    count = 0
+  }
   function increment(){
     count++
     console.log(count)
   }
-  function clear(){
+  function toggle(){
     if(interval){
       clearInterval(interval)
       interval = null

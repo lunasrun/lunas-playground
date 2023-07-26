@@ -101,14 +101,15 @@ function setUrlParam() {
 }
 
 const items = ref([
-  { name: 'Item 1', file: '1.blv' },
-  { name: 'Item 2', file: '2.blv' },
-  { name: 'Item 3', file: '3.blv' },
-  { name: 'Item 4', file: '4.blv' },
-  { name: 'Item 5', file: '5.blv' },
-  { name: 'Item 6', file: '6.blv' },
-  { name: 'Item 7', file: '7.blv' },
-  { name: 'Item 8', file: '8.blv' }
+  { name: 'Data Binding with Style', file: '6.blv' },
+  { name: 'Incrementer by Dynamic Data Binding', file: '0.blv' },
+  { name: 'Stopwatch', file: '1.blv' },
+  { name: 'Style Attribute Binding', file: '2.blv' },
+  { name: 'Value Attribute Binding', file: '3.blv' },
+  { name: 'Two-way Data Binding 1', file: '4.blv' },
+  { name: 'Two-way Data Binding 2', file: '5.blv' },
+  { name: 'If Block 1', file: '7.blv' },
+  { name: 'If Block 2', file: '8.blv' }
 ])
 
 import axios from 'axios'

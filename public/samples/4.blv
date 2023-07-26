@@ -1,11 +1,11 @@
 html:
   <div>
-    <input ::value="inputValue" />
-    <div>inputValue: ${ inputValue }</div>
-    <button @click="setFoo">set foo</button>
+    <input ::value="msg" />
+    <div>The entered message: ${ msg }</div>
+    <button @click="reset">Reset Message</button>
   </div>
 script:
-  const inputValue = ""
-  function setFoo() {
-    inputValue = "foo"
+  const msg = ""
+  function reset() {
+    msg = ""
   }
