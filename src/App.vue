@@ -11,7 +11,7 @@ const previewScreen = ref(0)
 const errMsg = ref('')
 const isErr = ref(false)
 const dialog = ref(false)
-const iframe = ref<HTMLElement | null>(null)
+const iframe = ref<HTMLIFrameElement | null>(null)
 
 watch(text, async () => {
   const { js, err } = blve_compile(text.value)
