@@ -2,7 +2,6 @@
 import { onMounted, ref, watch } from 'vue'
 import MonacoEditor from 'monaco-editor-vue3'
 import { compile } from './wasm'
-// import { compile } from 'blve-test-2/dist/wasm-compiler/blve_compiler'
 
 const text = ref('')
 const compiled_js = ref('')
@@ -11,6 +10,8 @@ const preview_css = ref('')
 const previewScreen = ref(0)
 const errMsg = ref('')
 const isErr = ref(false)
+const dialog = ref(false)
+const iframe = ref<HTMLElement | null>(null)
 
 watch(text, async () => {
   const { js, err } = blve_compile(text.value)
@@ -19,7 +20,6 @@ watch(text, async () => {
     isErr.value = true
   } else {
     compiled_js.value = js as string
-    // compiled_css.value = css as string
     errMsg.value = ''
     isErr.value = false
 
@@ -79,9 +79,13 @@ onMounted(() => {
   const code = url.searchParams.get('code')
   if (code == '' || code == undefined) {
     const defaultCode = `html:
-  <div>\${ message }</div>
+  <div class="msg">\${ message }</div>
 script:
   const message = "Hello Blve"
+style:
+  .msg {
+    color: red;
+  }
 `
     text.value = defaultCode
     setUrlParam()
@@ -95,60 +99,79 @@ function setUrlParam() {
   url.searchParams.set('code', encode(text.value))
   window.history.pushState({}, '', url.toString())
 }
+
+const items = ref([
+  { name: 'Item 1', file: '1.blv' },
+  { name: 'Item 2', file: '2.blv' },
+  { name: 'Item 3', file: '3.blv' },
+  { name: 'Item 4', file: '4.blv' },
+  { name: 'Item 5', file: '5.blv' },
+  { name: 'Item 6', file: '6.blv' },
+  { name: 'Item 7', file: '7.blv' },
+  { name: 'Item 8', file: '8.blv' }
+])
+
+import axios from 'axios'
+
+async function loadSample(file: string) {
+  const a = await (await axios.get(`./samples/${file}`)).data
+  console.log(a)
+  text.value = a
+  dialog.value = false
+}
+
+function reload() {
+  if (iframe.value) {
+    iframe.value.srcdoc += ''
+  }
+}
 </script>
 
 <template>
   <div class="wrapper">
-    <div class="editor">
-      <!-- 複数行かけるテキストエディタ -->
-      <!-- <textarea  v-model="text" rows="10" cols="50"></textarea> -->
-      <MonacoEditor
-        theme="vs"
-        :options="options"
-        language="javascript"
-        width="100%"
-        height="100%"
-        v-model:value="text"
-      ></MonacoEditor>
-    </div>
-    <div class="preview">
-      <div class="preview__tabs">
-        <button
-          @click="previewScreen = 0"
-          class="preview__button"
-          :class="{
-            preview__button__active: previewScreen == 0
-          }"
-        >
-          Content Preview
-        </button>
-        <button
-          @click="previewScreen = 1"
-          class="preview__button"
-          :class="{
-            preview__button__active: previewScreen == 1
-          }"
-        >
-          JavaScript
-        </button>
-        <button
-          @click="previewScreen = 2"
-          class="preview__button"
-          :class="{
-            preview__button__active: previewScreen == 2
-          }"
-        >
-          CSS
-        </button>
+    <v-toolbar color="blue-lighten-5">
+      <v-toolbar-title>Blve Playground</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-btn icon>
+        <v-icon>mdi-share-variant</v-icon>
+      </v-btn>
+      <v-btn @click="dialog = true"> Load Samples </v-btn>
+    </v-toolbar>
+    <div class="content">
+      <div class="editor">
+        <!-- 複数行かけるテキストエディタ -->
+        <!-- <textarea  v-model="text" rows="10" cols="50"></textarea> -->
+        <MonacoEditor
+          theme="vs"
+          :options="options"
+          language="javascript"
+          width="100%"
+          height="100%"
+          v-model:value="text"
+        ></MonacoEditor>
       </div>
-      <div v-if="isErr" class="preview__overlay">
-        <span v-if="isErr" class="preview__overlay__error">Error occured<br />{{ errMsg }}</span>
-      </div>
-      <iframe
-        v-if="previewScreen == 0"
-        class="preview__content"
-        sandbox="allow-scripts allow-same-origin"
-        :srcdoc="`<html>
+      <div class="preview">
+        <div class="preview__tabs">
+          <v-tabs color="deep-purple-accent-4" v-model="previewScreen" bg-color="blue-lighten-5">
+            <v-tab :value="0"
+              >Content Preview
+              <v-btn @click="reload" v-show="previewScreen == 0" icon variant="text">
+                <v-icon>mdi-reload</v-icon>
+              </v-btn>
+            </v-tab>
+            <v-tab :value="1">JavaScript</v-tab>
+            <v-tab :value="2">CSS</v-tab>
+          </v-tabs>
+        </div>
+        <div v-if="isErr" class="preview__overlay">
+          <span v-if="isErr" class="preview__overlay__error">Error occured<br />{{ errMsg }}</span>
+        </div>
+        <iframe
+          v-if="previewScreen == 0"
+          class="preview__content"
+          sandbox="allow-scripts allow-same-origin"
+          ref="iframe"
+          :srcdoc="`<html>
             <head>
               <style>
                 ${preview_css}
@@ -163,35 +186,60 @@ function setUrlParam() {
               <div id='app'></div>
             </body>
           </html>`"
-      >
-      </iframe>
-      <div v-if="previewScreen == 1" class="preview__text preview__content">
-        <MonacoEditor
-          theme="vs"
-          :options="readOnlyOptions"
-          language="javascript"
-          width="100%"
-          height="100%"
-          v-model:value="compiled_js"
-        ></MonacoEditor>
-      </div>
-      <div v-if="previewScreen == 2" class="preview__content">
-        <MonacoEditor
-          theme="vs"
-          :options="readOnlyOptions"
-          language="javascript"
-          width="100%"
-          height="100%"
-          v-model:value="preview_css"
-        ></MonacoEditor>
+        >
+        </iframe>
+        <div v-if="previewScreen == 1" class="preview__text preview__content">
+          <MonacoEditor
+            theme="vs"
+            :options="readOnlyOptions"
+            language="javascript"
+            width="100%"
+            height="100%"
+            v-model:value="compiled_js"
+          ></MonacoEditor>
+        </div>
+        <div v-if="previewScreen == 2" class="preview__content">
+          <MonacoEditor
+            theme="vs"
+            :options="readOnlyOptions"
+            language="css"
+            width="100%"
+            height="100%"
+            v-model:value="preview_css"
+          ></MonacoEditor>
+        </div>
       </div>
     </div>
   </div>
+  <v-dialog v-model="dialog" max-width="600px">
+    <v-card>
+      <v-card-title class="headline">Select an Item</v-card-title>
+
+      <v-card-text>
+        <v-list-item-group>
+          <v-list-item v-for="item in items" :key="item.name" @click="loadSample(item.file)">
+            <v-list-item-content>
+              <v-list-item-title>{{ item.name }}</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-item-group>
+      </v-card-text>
+
+      <v-card-actions>
+        <v-spacer></v-spacer>
+        <v-btn @click="dialog = false">Close</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 <style>
 .wrapper {
   width: 100%;
   height: 100vh;
+}
+.content {
+  width: 100%;
+  height: calc(100% - 64px);
   display: flex;
   justify-content: center;
 }
@@ -219,15 +267,15 @@ function setUrlParam() {
 }
 .preview {
   width: 50%;
-  height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
 }
 .preview__tabs {
-  height: 44px;
+  height: 48px;
 }
 .preview__content {
-  height: calc(100vh - 44px);
+  height: calc(100vh - 48px);
   white-space: pre;
   overflow: auto;
 }
@@ -258,11 +306,14 @@ function setUrlParam() {
 
 .preview__overlay {
   position: absolute;
-  height: 100vh;
+  height: calc(100vh - 64px);
   width: 100%;
   background-color: rgba(0, 0, 0, 0.8);
 }
 .preview__overlay__error {
   color: red;
+}
+iframe {
+  border: none;
 }
 </style>
