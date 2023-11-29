@@ -4,7 +4,7 @@
 
 This is a playground for Blve, a programming language that compiles to JavaScript.
 
-You can try it out at [Blve playground]([https://blve-playground.netlify.app/](https://blvedev.github.io/blve-playground/)).
+You can try it out at [Blve playground](https://blve-playground.netlify.app/).
 
 ## Development
 
