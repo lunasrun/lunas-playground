@@ -3,6 +3,7 @@ import { onMounted, ref, watch } from 'vue'
 import MonacoEditor from 'monaco-editor-vue3'
 import { compile } from './wasm'
 import { copyText } from './utils/copy'
+import './utils/monaco'
 
 const text = ref('')
 const compiled_js = ref('')
@@ -15,6 +16,7 @@ const dialog = ref(false)
 const iframe = ref<HTMLIFrameElement | null>(null)
 
 watch(text, async () => {
+  localStorage.setItem('code', text.value)
   const { js, err } = blve_compile(text.value)
   if (err) {
     errMsg.value = err
@@ -78,7 +80,10 @@ onMounted(() => {
   const url = new URL(window.location.href)
   const code = url.searchParams.get('code')
   if (code == '' || code == undefined) {
-    const defaultCode = `html:
+    if (localStorage.getItem('code')) {
+      text.value = localStorage.getItem('code') as string
+    } else {
+      const defaultCode = `html:
   <div class="msg">\${ message }</div>
 script:
   const message = "Hello Blve"
@@ -87,7 +92,8 @@ style:
     color: red;
   }
 `
-    text.value = defaultCode
+      text.value = defaultCode
+    }
   } else {
     text.value = decodeURIComponent(escape(window.atob(decodeURIComponent(code))))
     url.searchParams.delete('code')
@@ -104,14 +110,15 @@ const items = ref([
   { name: 'Two-way Data Binding 1', file: '4.blv' },
   { name: 'Two-way Data Binding 2', file: '5.blv' },
   { name: 'If Block 1', file: '7.blv' },
-  { name: 'If Block 2', file: '8.blv' }
+  { name: 'If Block 2', file: '8.blv' },
+  { name: 'If Block 3', file: '11.blv' }
 ])
 
 import axios from 'axios'
+import { primaryColor } from './utils/colors'
 
 async function loadSample(file: string) {
   const a = await (await axios.get(`./samples/${file}`)).data
-  console.log(a)
   text.value = a
   dialog.value = false
 }
@@ -129,12 +136,14 @@ function share() {
   const urlStr = url.toString()
   copyText(urlStr)
 }
+
+const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
 </script>
 
 <template>
   <div class="wrapper">
-    <v-toolbar color="blue-lighten-5">
-      <v-toolbar-title>Blve Playground</v-toolbar-title>
+    <v-toolbar :color="primaryColor">
+      <v-toolbar-title>{{ title }}</v-toolbar-title>
       <v-spacer></v-spacer>
       <v-menu>
         <template v-slot:activator="{ props }">
@@ -152,12 +161,10 @@ function share() {
     </v-toolbar>
     <div class="content">
       <div class="editor">
-        <!-- 複数行かけるテキストエディタ -->
-        <!-- <textarea  v-model="text" rows="10" cols="50"></textarea> -->
         <MonacoEditor
           theme="vs"
           :options="options"
-          language="javascript"
+          language="blve"
           width="100%"
           height="100%"
           v-model:value="text"
@@ -165,7 +172,7 @@ function share() {
       </div>
       <div class="preview">
         <div class="preview__tabs">
-          <v-tabs color="deep-purple-accent-4" v-model="previewScreen" bg-color="blue-lighten-5">
+          <v-tabs color="deep-purple-accent-4" v-model="previewScreen" :bg-color="primaryColor">
             <v-tab :value="0"
               >Content Preview
               <v-btn @click="reload" v-show="previewScreen == 0" icon variant="text">
@@ -229,13 +236,11 @@ function share() {
       <v-card-title class="headline">Sample Codes</v-card-title>
 
       <v-card-text>
-        <v-list-item-group>
-          <v-list-item v-for="item in items" :key="item.name" @click="loadSample(item.file)">
-            <v-list-item-content>
-              <v-list-item-title>{{ item.name }}</v-list-item-title>
-            </v-list-item-content>
-          </v-list-item>
-        </v-list-item-group>
+        <v-list-item v-for="item in items" :key="item.name" @click="loadSample(item.file)">
+          <v-list-item-title>
+            <v-list-item-title>{{ item.name }}</v-list-item-title>
+          </v-list-item-title>
+        </v-list-item>
       </v-card-text>
 
       <v-card-actions>
