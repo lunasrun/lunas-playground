@@ -142,6 +142,8 @@ const blveHighlightingRules = {
 monaco.languages.register({ id: 'blve' })
 
 // Registering the new language's configuration
+// TODO: Delte ts-ignore
+// @ts-ignore
 monaco.languages.setMonarchTokensProvider('blve', blveHighlightingRules)
 
 // Optional: You can also add custom configuration for comments, auto-closing pairs, etc.
