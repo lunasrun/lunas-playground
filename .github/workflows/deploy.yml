@@ -23,12 +23,12 @@ jobs:
         run: |
           make build-web
         working-directory: ./blve
-      - name: Upload Artifact
+      - name: Upload Wasm Artifact
         uses: actions/upload-artifact@v2
         with:
           name: blve-wasm-web-pkg
           path: ./blve/crates/blve_compiler/pkg
-      - name: Upload Artifact
+      - name: Upload Runtime Artifact
         uses: actions/upload-artifact@v2
         with:
           name: blve-runtime
@@ -55,7 +55,7 @@ jobs:
         with:
           name: blve-wasm-web-pkg
           path: ./src/wasm
-      - name: Download Blve Wasm Artifact
+      - name: Download Blve Runtime Artifact
         uses: actions/download-artifact@v2
         with:
           name: blve-runtime
