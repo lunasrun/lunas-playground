@@ -28,6 +28,11 @@ jobs:
         with:
           name: blve-wasm-web-pkg
           path: ./blve/crates/blve_compiler/pkg
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: blve-runtime
+          path: ./blve/npm-pkg/src/runtime
   build-and-deploy-playground:
     runs-on: ubuntu-latest
     permissions:
