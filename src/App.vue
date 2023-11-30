@@ -111,7 +111,8 @@ const items = ref([
   { name: 'Two-way Data Binding 2', file: '5.blv' },
   { name: 'If Block 1', file: '7.blv' },
   { name: 'If Block 2', file: '8.blv' },
-  { name: 'If Block 3', file: '11.blv' }
+  { name: 'If Block 3', file: '11.blv' },
+  { name: 'If Block 4', file: '12.blv' }
 ])
 
 import axios from 'axios'
