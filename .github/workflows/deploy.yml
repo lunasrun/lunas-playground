@@ -58,7 +58,7 @@ jobs:
       - name: Download Blve Wasm Artifact
         uses: actions/download-artifact@v2
         with:
-          name: blve-wasm-web-pkg
+          name: blve-runtime
           path: ./src/runtime
       - name: Build
         run: |
