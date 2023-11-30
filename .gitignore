@@ -30,7 +30,7 @@ coverage
 *.sln
 *.sw?
 
-public/runtime.js
+public/runtime/index.js
 src/wasm/*
 
 src/runtime

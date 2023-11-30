@@ -26,7 +26,7 @@ watch(text, async () => {
     errMsg.value = ''
     isErr.value = false
 
-    const runtimeCompile = compile(text.value, true, './runtime.js')
+    const runtimeCompile = compile(text.value, true, './runtime/index.js')
     preview_js.value = runtimeCompile.js
     preview_css.value = runtimeCompile.css as string
   }

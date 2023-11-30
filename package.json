@@ -10,7 +10,7 @@
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "format": "prettier --write src/",
-    "build-runtime": "tsc --skipLibCheck --target es6 --module es6 --outDir public --esModuleInterop ./src/runtime/index.ts"
+    "build-runtime": "tsc --skipLibCheck --target es6 --module es6 --outDir public/runtime --esModuleInterop ./src/runtime/index.ts"
   },
   "dependencies": {
     "vue": "^3.3.4"
