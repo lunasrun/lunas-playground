@@ -32,3 +32,5 @@ coverage
 
 public/runtime.js
 src/wasm/*
+
+src/static/runtime.ts
