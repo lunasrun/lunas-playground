@@ -7,7 +7,7 @@ jobs:
   build-blve-wasm:
     runs-on: ubuntu-latest
     steps:
-      - run: git clone -b feat/if-block https://github.com/blvedev/blve.git
+      - run: git clone https://github.com/blvedev/blve.git
       - name: Use Node.js
         uses: actions/setup-node@v2
         with:
