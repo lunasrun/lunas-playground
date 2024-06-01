@@ -200,7 +200,7 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
               <script type='module'>
                 ${preview_js}
                 const app = document.querySelector('#app')
-                App(app)
+                App().mount(app)
               </script>
             </head>
             <body>
