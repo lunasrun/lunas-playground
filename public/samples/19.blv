@@ -1,0 +1,10 @@
+html:
+  <div class="child">
+    ${ message }
+  </div>
+script:
+  const message = "私は子コンポーネントです。";
+style:
+  .child {
+    border: dashed blue;
+  }

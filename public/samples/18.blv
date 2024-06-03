@@ -1,0 +1,13 @@
+@use Child from './Child.blv'
+html:
+  <div class="parent">
+    私は親コンポーネントです
+      <Child />
+    ${ message }
+  </div>
+script:
+  const message = "Hello Blve"
+style:
+  .parent {
+    border: solid red;
+  }

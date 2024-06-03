@@ -188,3 +188,19 @@ window.MonacoEnvironment = {
     return new EditorWorker()
   }
 }
+
+
+export const options = {
+  colorDecorators: true,
+  lineHeight: 24,
+  tabSize: 2,
+  minimap: { enabled: false }
+}
+
+export const readOnlyOptions = {
+  colorDecorators: true,
+  lineHeight: 24,
+  tabSize: 2,
+  minimap: { enabled: false },
+  readOnly: true
+}

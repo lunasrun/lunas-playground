@@ -4,9 +4,22 @@ import MonacoEditor from 'monaco-editor-vue3'
 import { compile } from './wasm'
 import { copyText } from './utils/copy'
 import './utils/monaco'
+import axios from 'axios'
+import { primaryColor } from './utils/colors'
+import { options, readOnlyOptions } from './utils/monaco'
+import { decodeFiles, encodeFiles } from './utils/encode'
+import { loadFilesFromLocalStorage, saveFilesToLocalStorage, type BlveFiles } from './utils/storage'
+import { sampleItems, type SampleItem } from './utils/samples'
 
-const text = ref('')
-const compiled_js = ref('')
+const text = ref<BlveFiles>([
+  {
+    filename: 'App',
+    content: ''
+  }
+])
+
+const activeFile = ref(0)
+const codePreviewJs = ref('')
 const preview_js = ref('')
 const preview_css = ref('')
 const previewScreen = ref(0)
@@ -15,21 +28,51 @@ const isErr = ref(false)
 const dialog = ref(false)
 const iframe = ref<HTMLIFrameElement | null>(null)
 
-watch(text, async () => {
-  localStorage.setItem('code', text.value)
-  const { js, err } = blve_compile(text.value)
-  if (err) {
-    errMsg.value = err
-    isErr.value = true
-  } else {
-    compiled_js.value = js as string
-    errMsg.value = ''
-    isErr.value = false
+watch(
+  text,
+  async () => {
+    console.log('text changed')
+    saveFilesToLocalStorage(text.value)
 
-    const runtimeCompile = compile(text.value, true, './runtime/index.js')
-    preview_js.value = runtimeCompile.js
-    preview_css.value = runtimeCompile.css as string
-  }
+    // preview compile
+    const { js } = blve_compile(text.value[0].content)
+    codePreviewJs.value = js as string
+    preview_js.value = ''
+    preview_css.value = ''
+
+    for (let i in text.value) {
+      const file = text.value[i]
+      try {
+        const runtimeCompile = compile(file.content, true, file.filename, './runtime/index.js')
+        const codeToInsert = (() => {
+          if (i == '0') {
+            return runtimeCompile.js.split('\n')
+          } else {
+            return runtimeCompile.js.split('\n').slice(1)
+          }
+        })()
+        preview_js.value +=
+          codeToInsert
+            .filter((line) => {
+              return !text.value.some((f) => line.trim().startsWith(`import ${f.filename}`))
+            })
+            .join('\n') + '\n'
+        preview_css.value += (runtimeCompile.css as string) + '\n'
+        errMsg.value = ''
+        isErr.value = false
+      } catch (e) {
+        errMsg.value = 'Error occured in ' + file.filename + '\n' + e + '\n\n'
+        isErr.value = true
+        return
+      }
+    }
+  },
+  { deep: true }
+)
+
+watch(activeFile, () => {
+  const { js } = blve_compile(text.value[activeFile.value].content)
+  codePreviewJs.value = js as string
 })
 
 function blve_compile(code: string): {
@@ -53,35 +96,38 @@ function blve_compile(code: string): {
   }
 }
 
-function encode(inputString: string): string {
-  let base64String: string
-  base64String = encodeURIComponent(window.btoa(unescape(encodeURIComponent(inputString))))
+function addFile() {
+  const filename = prompt('Enter filename')
+  if (!filename) return
 
-  return base64String
-}
+  if (filename.includes('.')) {
+    alert('Filename should not include "."')
+    return
+  }
+  if (text.value.find((file) => file.filename == filename)) {
+    alert('Filename already exists')
+    return
+  }
 
-const options = {
-  colorDecorators: true,
-  lineHeight: 24,
-  tabSize: 2,
-  minimap: { enabled: false }
-}
-
-const readOnlyOptions = {
-  colorDecorators: true,
-  lineHeight: 24,
-  tabSize: 2,
-  minimap: { enabled: false },
-  readOnly: true
+  text.value.push({
+    filename: filename,
+    content: `html:
+  <div class="msg">\${ message }</div>
+script:
+  const message = "Hello Blve"
+`
+  })
+  activeFile.value = text.value.length - 1
 }
 
 onMounted(() => {
   // get query param "code" by normal javascript
   const url = new URL(window.location.href)
-  const code = url.searchParams.get('code')
-  if (code == '' || code == undefined) {
-    if (localStorage.getItem('code')) {
-      text.value = localStorage.getItem('code') as string
+  const urlCode = url.searchParams.get('code')
+  const localStorageCode = loadFilesFromLocalStorage()
+  if (urlCode == '' || urlCode == undefined) {
+    if (localStorageCode) {
+      text.value = localStorageCode
     } else {
       const defaultCode = `html:
   <div class="msg">\${ message }</div>
@@ -92,35 +138,31 @@ style:
     color: red;
   }
 `
-      text.value = defaultCode
+      text.value = [
+        {
+          filename: 'App',
+          content: defaultCode
+        }
+      ]
     }
   } else {
-    text.value = decodeURIComponent(escape(window.atob(decodeURIComponent(code))))
+    text.value = decodeFiles(urlCode)
     url.searchParams.delete('code')
     window.history.replaceState({}, '', url.toString())
   }
 })
 
-const items = ref([
-  { name: 'Data Binding with Style', file: '6.blv' },
-  { name: 'Incrementer by Dynamic Data Binding', file: '0.blv' },
-  { name: 'Stopwatch', file: '1.blv' },
-  { name: 'Style Attribute Binding', file: '2.blv' },
-  { name: 'Value Attribute Binding', file: '3.blv' },
-  { name: 'Two-way Data Binding 1', file: '4.blv' },
-  { name: 'Two-way Data Binding 2', file: '5.blv' },
-  { name: 'If Block 1', file: '7.blv' },
-  { name: 'If Block 2', file: '8.blv' },
-  { name: 'If Block 3', file: '11.blv' },
-  { name: 'If Block 4', file: '12.blv' }
-])
-
-import axios from 'axios'
-import { primaryColor } from './utils/colors'
-
-async function loadSample(file: string) {
-  const a = await (await axios.get(`./samples/${file}`)).data
-  text.value = a
+async function loadSample(sampleItem: SampleItem) {
+  if (!confirm('Are you sure to load this sample?')) return
+  const tmpText = []
+  for (let file of sampleItem.files) {
+    const loadedSample = await (await axios.get(`./samples/${file.onlinePath}`)).data
+    tmpText.push({
+      filename: file.filename,
+      content: loadedSample
+    })
+  }
+  text.value = tmpText
   dialog.value = false
 }
 
@@ -132,10 +174,18 @@ function reload() {
 
 function share() {
   const url = new URL(window.location.href)
-  url.searchParams.set('code', encode(text.value))
-  // url to string
+  url.searchParams.set('code', encodeFiles(text.value))
   const urlStr = url.toString()
   copyText(urlStr)
+}
+
+function deleteFile(index: number) {
+  if (!confirm('Are you sure to delete the file below?\n' + text.value[index].filename)) {
+    return
+  }
+
+  activeFile.value = 0
+  text.value.splice(index, 1)
 }
 
 const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
@@ -162,14 +212,35 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
     </v-toolbar>
     <div class="content">
       <div class="editor">
-        <MonacoEditor
-          theme="vs"
-          :options="options"
-          language="blve"
-          width="100%"
-          height="100%"
-          v-model:value="text"
-        ></MonacoEditor>
+        <!-- file tabs -->
+        <div class="preview__tabs">
+          <v-tabs v-model="activeFile" color="deep-purple-accent-4" :bg-color="primaryColor">
+            <v-tab v-for="(file, index) in text" :key="file.filename" :value="index">
+              {{ file.filename }}.blv
+              <v-btn
+                @click="deleteFile(index)"
+                icon
+                variant="text"
+                v-if="index != 0 && activeFile == index"
+              >
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+            </v-tab>
+            <v-btn @click="addFile" icon variant="text">
+              <v-icon>mdi-plus</v-icon>
+            </v-btn>
+          </v-tabs>
+        </div>
+        <div class="editor__text-field">
+          <MonacoEditor
+            theme="vs"
+            :options="options"
+            language="blve"
+            width="100%"
+            height="100%"
+            v-model:value="text[activeFile].content"
+          ></MonacoEditor>
+        </div>
       </div>
       <div class="preview">
         <div class="preview__tabs">
@@ -216,7 +287,7 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
             language="javascript"
             width="100%"
             height="100%"
-            v-model:value="compiled_js"
+            v-model:value="codePreviewJs"
           ></MonacoEditor>
         </div>
         <div v-if="previewScreen == 2" class="preview__content">
@@ -237,7 +308,7 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
       <v-card-title class="headline">Sample Codes</v-card-title>
 
       <v-card-text>
-        <v-list-item v-for="item in items" :key="item.name" @click="loadSample(item.file)">
+        <v-list-item v-for="item in sampleItems" :key="item.name" @click="loadSample(item)">
           <v-list-item-title>
             <v-list-item-title>{{ item.name }}</v-list-item-title>
           </v-list-item-title>
@@ -266,6 +337,8 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
   /* 左半分を占める */
   width: 50%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 .editor__text-field {
   width: 100%;
@@ -334,5 +407,9 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
 }
 iframe {
   border: none;
+}
+
+.editor .v-tab {
+  text-transform: none !important;
 }
 </style>
