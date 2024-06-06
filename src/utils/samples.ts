@@ -10,10 +10,6 @@ export type SampleItem = {
 
 export const sampleItems = ref<SampleItem[]>([
   {
-    name: 'Data Binding',
-    files: [{ onlinePath: '0.blv', filename: 'App' }]
-  },
-  {
     name: 'Data Binding with Style',
     files: [{ onlinePath: '6.blv', filename: 'App' }]
   },
@@ -42,19 +38,19 @@ export const sampleItems = ref<SampleItem[]>([
     files: [{ onlinePath: '5.blv', filename: 'App' }]
   },
   {
-    name: 'If Block 1',
+    name: 'If Block 1 (Simple Example)',
     files: [{ onlinePath: '7.blv', filename: 'App' }]
   },
   {
-    name: 'If Block 2',
+    name: 'If Block 2 (Multiple Parallel If Blocks)',
     files: [{ onlinePath: '8.blv', filename: 'App' }]
   },
   {
-    name: 'If Block 3',
+    name: 'If Block 3 (Nested If Blocks)',
     files: [{ onlinePath: '11.blv', filename: 'App' }]
   },
   {
-    name: 'If Block 4',
+    name: 'If Block 4 (Data Binding in If Block)',
     files: [{ onlinePath: '12.blv', filename: 'App' }]
   },
   {
