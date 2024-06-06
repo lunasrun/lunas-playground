@@ -1,7 +1,7 @@
 @use Child from './Child.blv'
 html:
   <div class="parent">
-    私は親コンポーネントです
+    This is the parent component
       <Child />
     ${ message }
   </div>

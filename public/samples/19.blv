@@ -3,7 +3,7 @@ html:
     ${ message }
   </div>
 script:
-  const message = "私は子コンポーネントです。";
+  const message = "This is the child component";
 style:
   .child {
     border: dashed blue;
