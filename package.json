@@ -16,7 +16,7 @@
     "vue": "^3.3.4"
   },
   "devDependencies": {
-    "monaco-editor-vue3": "^0.1.6",
+    "monaco-editor-vue3": "^0.1.10s",
     "vuetify": "^3.3.9",
     "@mdi/font": "^7.2.96",
     "axios": "^1.4.0",

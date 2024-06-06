@@ -20,9 +20,9 @@ const text = ref<BlveFiles>([
 
 const activeFile = ref(0)
 const codePreviewJs = ref('')
-const preview_js = ref('')
-const preview_css = ref('')
-const previewScreen = ref(0)
+const browserPreviewJs = ref('')
+const previewCss = ref('')
+const previewScreenTab = ref(0)
 const errMsg = ref('')
 const isErr = ref(false)
 const dialog = ref(false)
@@ -31,14 +31,13 @@ const iframe = ref<HTMLIFrameElement | null>(null)
 watch(
   text,
   async () => {
-    console.log('text changed')
     saveFilesToLocalStorage(text.value)
 
     // preview compile
     const { js } = blve_compile(text.value[0].content)
     codePreviewJs.value = js as string
-    preview_js.value = ''
-    preview_css.value = ''
+    browserPreviewJs.value = ''
+    previewCss.value = ''
 
     for (let i in text.value) {
       const file = text.value[i]
@@ -51,13 +50,17 @@ watch(
             return runtimeCompile.js.split('\n').slice(1)
           }
         })()
-        preview_js.value +=
+        browserPreviewJs.value +=
           codeToInsert
             .filter((line) => {
               return !text.value.some((f) => line.trim().startsWith(`import ${f.filename}`))
             })
             .join('\n') + '\n'
-        preview_css.value += (runtimeCompile.css as string) + '\n'
+        if (runtimeCompile.css) {
+          previewCss.value += (runtimeCompile.css as string) + '\n'
+        } else {
+          previewCss.value += ''
+        }
         errMsg.value = ''
         isErr.value = false
       } catch (e) {
@@ -236,18 +239,16 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
             theme="vs"
             :options="options"
             language="blve"
-            width="100%"
-            height="100%"
             v-model:value="text[activeFile].content"
           ></MonacoEditor>
         </div>
       </div>
       <div class="preview">
         <div class="preview__tabs">
-          <v-tabs color="deep-purple-accent-4" v-model="previewScreen" :bg-color="primaryColor">
+          <v-tabs color="deep-purple-accent-4" v-model="previewScreenTab" :bg-color="primaryColor">
             <v-tab :value="0"
               >Content Preview
-              <v-btn @click="reload" v-show="previewScreen == 0" icon variant="text">
+              <v-btn @click="reload" v-show="previewScreenTab == 0" icon variant="text">
                 <v-icon>mdi-reload</v-icon>
               </v-btn>
             </v-tab>
@@ -259,17 +260,17 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
           <span v-if="isErr" class="preview__overlay__error">Error occured<br />{{ errMsg }}</span>
         </div>
         <iframe
-          v-if="previewScreen == 0"
+          v-if="previewScreenTab == 0"
           class="preview__content"
           sandbox="allow-scripts allow-same-origin"
           ref="iframe"
           :srcdoc="`<html>
             <head>
               <style>
-                ${preview_css}
+                ${previewCss}
               </style>
               <script type='module'>
-                ${preview_js}
+                ${browserPreviewJs}
                 const app = document.querySelector('#app')
                 App().mount(app)
               </script>
@@ -280,7 +281,7 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
           </html>`"
         >
         </iframe>
-        <div v-if="previewScreen == 1" class="preview__text preview__content">
+        <div v-if="previewScreenTab == 1" class="preview__text preview__content">
           <MonacoEditor
             theme="vs"
             :options="readOnlyOptions"
@@ -290,14 +291,14 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
             v-model:value="codePreviewJs"
           ></MonacoEditor>
         </div>
-        <div v-if="previewScreen == 2" class="preview__content">
+        <div v-if="previewScreenTab == 2" class="preview__content">
           <MonacoEditor
             theme="vs"
             :options="readOnlyOptions"
             language="css"
             width="100%"
             height="100%"
-            v-model:value="preview_css"
+            v-model:value="previewCss"
           ></MonacoEditor>
         </div>
       </div>
@@ -350,7 +351,7 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
   font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
 }
 .monaco-editor {
-  width: 50% !important;
+  width: 100% !important;
   height: 100% !important;
 }
 .monaco-editor-vue3 {
