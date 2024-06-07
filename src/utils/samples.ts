@@ -54,9 +54,24 @@ export const sampleItems = ref<SampleItem[]>([
     files: [{ onlinePath: '12.blv', filename: 'App' }]
   },
   {
+    name: 'If Block 5 (Event Binding in If Block)',
+    files: [{ onlinePath: '20.blv', filename: 'App' }]
+  },
+  {
+    name: 'If Block 5 (Multiple Text Nodes in If Block)',
+    files: [{ onlinePath: '22.blv', filename: 'App' }]
+  },
+  {
     name: 'Child Component',
     files: [
       { onlinePath: '18.blv', filename: 'App' },
+      { onlinePath: '19.blv', filename: 'Child' }
+    ]
+  },
+  {
+    name: 'Child Component',
+    files: [
+      { onlinePath: '21.blv', filename: 'App' },
       { onlinePath: '19.blv', filename: 'Child' }
     ]
   }
