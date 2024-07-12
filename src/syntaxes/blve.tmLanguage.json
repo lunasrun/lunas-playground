@@ -1,0 +1,104 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "blve",
+  "patterns": [
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "match": "@(input|use)",
+      "name": "keyword.control.blve"
+    },
+    {
+      "match": "\\b(?i:string)\\b",
+      "name": "storage.type.string.blve"
+    },
+    {
+      "match": "\"[^\"]*\"",
+      "name": "string.quoted.double.blve"
+    },
+    {
+      "match": "'[^']*'",
+      "name": "string.quoted.double.blve"
+    },
+    {
+      "begin": "(^html:\\s*$)",
+      "beginCaptures": {
+        "1": {
+          "name": "meta.tag.blve"
+        }
+      },
+      "end": "^(?!\\s)",
+      "patterns": [
+        {
+          "include": "text.html.blve"
+        },
+        {
+          "begin": "\\$\\{",
+          "end": "\\}",
+          "contentName": "source.ts",
+          "patterns": [
+            {
+              "include": "source.ts"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "begin": "^html:\\s*$",
+      "end": "^(?!\\s)",
+      "name": "markup.raw.block.blve",
+      "patterns": [
+        {
+          "include": "text.html.blve"
+        }
+      ]
+    },
+    {
+      "begin": "^script:\\s*$",
+      "end": "^(?!\\s)",
+      "name": "source.ts.blve",
+      "patterns": [
+        {
+          "include": "source.ts"
+        }
+      ]
+    },
+    {
+      "begin": "^style:\\s*$",
+      "end": "^(?!\\s)",
+      "name": "source.css.blve",
+      "patterns": [
+        {
+          "include": "source.css"
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.blve",
+          "match": "\\b(if|while|for|return)\\b"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.blve",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.blve",
+          "match": "\\\\."
+        }
+      ]
+    }
+  },
+  "scopeName": "source.blve"
+}

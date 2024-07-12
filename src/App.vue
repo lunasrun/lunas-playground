@@ -53,6 +53,7 @@ watch(
           const runtimeCompile = compile(file.content, '#runtime')
           // eslint-disable-next-line no-useless-escape
           browserPreviewJs.value += `<script type="inline-module" id="${file.filename}">${runtimeCompile.js}<\/script>` + '\n'
+          // FIXME: Use import map instead of this
           // reolace "./{}.blv" to "#{}"
           browserPreviewJs.value = browserPreviewJs.value.replace(/"\.\/(.*?)\.blv"/g, '"#$1"')
           if (runtimeCompile.css) {
@@ -254,7 +255,7 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
           </v-tabs>
         </div>
         <div class="editor__text-field">
-          <MonacoEditor theme="vs" :options="options" language="blve" v-model:value="text[activeFile].content"
+          <MonacoEditor theme="github-light" :options="options" language="blve" v-model:value="text[activeFile].content"
             width="100%" height="100%">
           </MonacoEditor>
         </div>

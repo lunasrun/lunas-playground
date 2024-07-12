@@ -1,150 +1,28 @@
 import * as monaco from "monaco-editor";
+import blveHighlightingRules from "../syntaxes/blve.tmLanguage.json?raw";
+import blveHtmlHighlightingRules from "../syntaxes/text.html.blve.tmLanguage.json?raw";
+import { createHighlighter } from "shiki";
+import { shikiToMonaco } from "@shikijs/monaco";
 
-const blveHighlightingRules = {
-  keywords: ["if", "while", "for", "return", "@input", "@use"],
-  typeKeywords: ["string", "number", "boolean"],
-  jsKeywords: [
-    "var",
-    "let",
-    "const",
-    "function",
-    "return",
-    "if",
-    "else",
-    "while",
-    "for",
-    "switch",
-    "case",
-    "default",
-    "break",
-    "continue",
+const highlighter = await createHighlighter({
+  langs: [
+    JSON.parse(blveHighlightingRules),
+    JSON.parse(blveHtmlHighlightingRules),
+    "typescript",
+    "css",
   ],
-  operators: [
-    "=",
-    ">",
-    "<",
-    "==",
-    "!=",
-    "===",
-    "!==",
-    "<=",
-    ">=",
-    "+",
-    "-",
-    "*",
-    "/",
-    "&&",
-    "||",
-    "!",
-    "++",
-    "--",
-  ],
+  themes: ["github-light"],
+});
 
-  tokenizer: {
-    root: [
-      // Embed HTML
-      [/^html:\s*$/, { token: "keyword.embed.html", next: "@html" }],
-      // Embed JavaScript
-      [/^script:\s*$/, { token: "keyword.embed.js", next: "@javascript" }],
-      // Embed CSS
-      [/^style:\s*$/, { token: "keyword.embed.css", next: "@css" }],
-      // keywords
-      [
-        /[a-z_$][\w$]*/,
-        {
-          cases: {
-            "@typeKeywords": "keyword.type",
-            "@keywords": "keyword",
-            "@default": "identifier",
-          },
-        },
-      ],
-      // strings
-      [/"/, "string", "@string_double"],
-      [/'/, "string", "@string_single"],
-    ],
+monaco.languages.register({ id: "blve" });
 
-    string_double: [
-      [/[^\\"]+/, "string"],
-      [/"/, "string", "@pop"],
-    ],
-
-    string_single: [
-      [/[^\\']+/, "string"],
-      [/'/, "string", "@pop"],
-    ],
-
-    html: [
-      // Exit HTML mode
-      [/^(?!html:)/, { token: "@rematch", switchTo: "@root" }],
-      // Simplified HTML rules
-      [/<[^>]+>/, "tag"],
-      [/[^<]+/, "string"],
-    ],
-
-    javascript: [
-      // Exit JavaScript mode
-      [/^(?!script:)/, { token: "@rematch", switchTo: "@root" }],
-      // JavaScript keywords
-      [
-        /[a-z_$][\w$]*/,
-        {
-          cases: {
-            "@jsKeywords": "keyword.js",
-            "@default": "identifier.js",
-          },
-        },
-      ],
-      // Operators
-      [
-        /[=><!+\-*/&|]+/,
-        {
-          cases: {
-            "@operators": "operator.js",
-            "@default": "",
-          },
-        },
-      ],
-      // strings
-      [/"/, "string.js", "@string_double_js"],
-      [/'/, "string.js", "@string_single_js"],
-    ],
-
-    string_double_js: [
-      [/[^\\"]+/, "string.js"],
-      [/"/, "string.js", "@pop"],
-    ],
-
-    string_single_js: [
-      [/[^\\']+/, "string.js"],
-      [/'/, "string.js", "@pop"],
-    ],
-
-    css: [
-      // Exit CSS mode
-      [/^(?!style:)/, { token: "@rematch", switchTo: "@root" }],
-      // CSS selectors
-      [/\.?[a-zA-Z_]\w*/, "keyword.css"],
-      [/\{/, "delimiter.curly", "@cssblock"],
-    ],
-
-    cssblock: [
-      [/\}/, "delimiter.curly", "@pop"],
-      [/:/, "delimiter"],
-      [/[a-zA-Z_]\w*/, "attribute.name.css"],
-      [/;/, "delimiter"],
-      [/[^{}:;]+/, "value.css"],
-    ],
-  },
-};
+shikiToMonaco(highlighter, monaco);
 
 // Registering the new language
-monaco.languages.register({ id: "blve" });
 
 // Registering the new language's configuration
 // TODO: Delte ts-ignore
 // @ts-ignore
-monaco.languages.setMonarchTokensProvider("blve", blveHighlightingRules);
 
 // Optional: You can also add custom configuration for comments, auto-closing pairs, etc.
 monaco.languages.setLanguageConfiguration("blve", {
