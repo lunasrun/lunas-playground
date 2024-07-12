@@ -30,7 +30,5 @@ coverage
 *.sln
 *.sw?
 
-public/runtime/index.js
 src/wasm/*
-
-src/runtime
+src/runtime/index.ts

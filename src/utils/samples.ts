@@ -69,7 +69,7 @@ export const sampleItems = ref<SampleItem[]>([
     ]
   },
   {
-    name: 'Child Component',
+    name: 'Child Component in If Block',
     files: [
       { onlinePath: '21.blv', filename: 'App' },
       { onlinePath: '19.blv', filename: 'Child' }
