@@ -8,13 +8,17 @@ import axios from 'axios'
 import { primaryColor } from './utils/colors'
 import { options, readOnlyOptions } from './utils/monaco'
 import { decodeFiles, encodeFiles } from './utils/encode'
-import { loadFilesFromLocalStorage, saveFilesToLocalStorage, type BlveFiles } from './utils/storage'
+import { loadFilesFromLocalStorage, saveFilesToLocalStorage, type ModuleFiles } from './utils/storage'
 import { sampleItems, type SampleItem } from './utils/samples'
+import runtimeText from './runtime/index.js?raw'
+import inlineModule from './runtime/inline-module.js?raw'
+import { computed } from 'vue'
 
-const text = ref<BlveFiles>([
+const text = ref<ModuleFiles>([
   {
     filename: 'App',
-    content: ''
+    content: '',
+    isBlveFile: true
   }
 ])
 
@@ -34,41 +38,42 @@ watch(
     saveFilesToLocalStorage(text.value)
 
     // preview compile
-    const { js } = blve_compile(text.value[0].content)
+    const { js } = blve_compile(text.value[activeFile.value].content)
     codePreviewJs.value = js as string
     browserPreviewJs.value = ''
     previewCss.value = ''
 
-    for (let i in text.value) {
-      const file = text.value[i]
+    // clone text.value and add runtime file
+    const modules = text.value.slice().concat([{ filename: 'runtime', content: runtimeText, isBlveFile: false }])
+
+    for (let i in modules) {
+      const file = modules[i]
       try {
-        const runtimeCompile = compile(file.content, true, file.filename, './runtime/index.js')
-        const codeToInsert = (() => {
-          if (i == '0') {
-            return runtimeCompile.js.split('\n')
+        if (file.isBlveFile) {
+          const runtimeCompile = compile(file.content, '#runtime')
+          // eslint-disable-next-line no-useless-escape
+          browserPreviewJs.value += `<script type="inline-module" id="${file.filename}">${runtimeCompile.js}<\/script>` + '\n'
+          // reolace "./{}.blv" to "#{}"
+          browserPreviewJs.value = browserPreviewJs.value.replace(/"\.\/(.*?)\.blv"/g, '"#$1"')
+          if (runtimeCompile.css) {
+            previewCss.value += (runtimeCompile.css as string) + '\n'
           } else {
-            return runtimeCompile.js.split('\n').slice(1)
+            previewCss.value += ''
           }
-        })()
-        browserPreviewJs.value +=
-          codeToInsert
-            .filter((line) => {
-              return !text.value.some((f) => line.trim().startsWith(`import ${f.filename}`))
-            })
-            .join('\n') + '\n'
-        if (runtimeCompile.css) {
-          previewCss.value += (runtimeCompile.css as string) + '\n'
+          errMsg.value = ''
+          isErr.value = false
         } else {
-          previewCss.value += ''
+          // eslint-disable-next-line no-useless-escape
+          browserPreviewJs.value += `<script type="inline-module" id="${file.filename}">${file.content}<\/script>` + '\n'
         }
-        errMsg.value = ''
-        isErr.value = false
       } catch (e) {
-        errMsg.value = 'Error occured in ' + file.filename + '\n' + e + '\n\n'
+        errMsg.value = 'Error occured in "' + file.filename + '.blv"\n\n' + e
         isErr.value = true
         return
       }
     }
+    // eslint-disable-next-line no-useless-escape
+    browserPreviewJs.value += `<script>${inlineModule}<\/script><script type="module">import App from '#App';const app = document.querySelector('#app');App().mount(app)<\/script>`
   },
   { deep: true }
 )
@@ -115,10 +120,11 @@ function addFile() {
   text.value.push({
     filename: filename,
     content: `html:
-  <div class="msg">\${ message }</div>
+<div class="msg">\${ message }</div>
 script:
-  const message = "Hello Blve"
+const message = "Hello Blve"
 `
+    , isBlveFile: false
   })
   activeFile.value = text.value.length - 1
 }
@@ -133,18 +139,19 @@ onMounted(() => {
       text.value = localStorageCode
     } else {
       const defaultCode = `html:
-  <div class="msg">\${ message }</div>
+<div class="msg">\${ message }</div>
 script:
-  const message = "Hello Blve"
+const message = "Hello Blve"
 style:
-  .msg {
-    color: red;
-  }
+.msg {
+color: red;
+}
 `
       text.value = [
         {
           filename: 'App',
-          content: defaultCode
+          content: defaultCode,
+          isBlveFile: true
         }
       ]
     }
@@ -155,6 +162,22 @@ style:
   }
 })
 
+const iframeDoc = computed(
+  () => {
+    if (!browserPreviewJs.value) return
+    return `<html>
+            <head>
+              ${browserPreviewJs.value}
+              <style>
+                ${previewCss.value}
+              </style>
+            </head>
+            <body>
+              <div id='app'></div>
+            </body>
+          </html>`
+  });
+
 async function loadSample(sampleItem: SampleItem) {
   if (!confirm('Are you sure to load this sample?')) return
   const tmpText = []
@@ -162,7 +185,8 @@ async function loadSample(sampleItem: SampleItem) {
     const loadedSample = await (await axios.get(`./samples/${file.onlinePath}`)).data
     tmpText.push({
       filename: file.filename,
-      content: loadedSample
+      content: loadedSample,
+      isBlveFile: true
     })
   }
   text.value = tmpText
@@ -220,12 +244,7 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
           <v-tabs v-model="activeFile" color="deep-purple-accent-4" :bg-color="primaryColor">
             <v-tab v-for="(file, index) in text" :key="file.filename" :value="index">
               {{ file.filename }}.blv
-              <v-btn
-                @click="deleteFile(index)"
-                icon
-                variant="text"
-                v-if="index != 0 && activeFile == index"
-              >
+              <v-btn @click="deleteFile(index)" icon variant="text" v-if="index != 0 && activeFile == index">
                 <v-icon>mdi-delete</v-icon>
               </v-btn>
             </v-tab>
@@ -235,19 +254,15 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
           </v-tabs>
         </div>
         <div class="editor__text-field">
-          <MonacoEditor
-            theme="vs"
-            :options="options"
-            language="blve"
-            v-model:value="text[activeFile].content"
-          ></MonacoEditor>
+          <MonacoEditor theme="vs" :options="options" language="blve" v-model:value="text[activeFile].content"
+            width="100%" height="100%">
+          </MonacoEditor>
         </div>
       </div>
       <div class="preview">
         <div class="preview__tabs">
           <v-tabs color="deep-purple-accent-4" v-model="previewScreenTab" :bg-color="primaryColor">
-            <v-tab :value="0"
-              >Content Preview
+            <v-tab :value="0">Content Preview
               <v-btn @click="reload" v-show="previewScreenTab == 0" icon variant="text">
                 <v-icon>mdi-reload</v-icon>
               </v-btn>
@@ -257,49 +272,20 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
           </v-tabs>
         </div>
         <div v-if="isErr" class="preview__overlay">
-          <span v-if="isErr" class="preview__overlay__error">Error occured<br />{{ errMsg }}</span>
+          <span v-if="isErr" class="preview__overlay__error">
+            <pre>{{ errMsg }}</pre>
+          </span>
         </div>
-        <iframe
-          v-if="previewScreenTab == 0"
-          class="preview__content"
-          sandbox="allow-scripts allow-same-origin"
-          ref="iframe"
-          :srcdoc="`<html>
-            <head>
-              <style>
-                ${previewCss}
-              </style>
-              <script type='module'>
-                ${browserPreviewJs}
-                const app = document.querySelector('#app')
-                App().mount(app)
-              </script>
-            </head>
-            <body>
-              <div id='app'></div>
-            </body>
-          </html>`"
-        >
+        <iframe v-if="previewScreenTab == 0" class="preview__content" sandbox="allow-scripts" ref="iframe"
+          :srcdoc="iframeDoc">
         </iframe>
-        <div v-if="previewScreenTab == 1" class="preview__text preview__content">
-          <MonacoEditor
-            theme="vs"
-            :options="readOnlyOptions"
-            language="javascript"
-            width="100%"
-            height="100%"
-            v-model:value="codePreviewJs"
-          ></MonacoEditor>
+        <div v-if="previewScreenTab == 1 && !isErr" class="preview__text preview__content">
+          <MonacoEditor theme="vs" :options="readOnlyOptions" language="javascript" width="100%" height="100%"
+            v-model:value="codePreviewJs"></MonacoEditor>
         </div>
-        <div v-if="previewScreenTab == 2" class="preview__content">
-          <MonacoEditor
-            theme="vs"
-            :options="readOnlyOptions"
-            language="css"
-            width="100%"
-            height="100%"
-            v-model:value="previewCss"
-          ></MonacoEditor>
+        <div v-if="previewScreenTab == 2 && !isErr" class="preview__content">
+          <MonacoEditor theme="vs" :options="readOnlyOptions" language="css" width="100%" height="100%"
+            v-model:value="previewCss"></MonacoEditor>
         </div>
       </div>
     </div>
@@ -328,12 +314,14 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
   width: 100%;
   height: 100vh;
 }
+
 .content {
   width: 100%;
   height: calc(100% - 64px);
   display: flex;
   justify-content: center;
 }
+
 .editor {
   /* 左半分を占める */
   width: 50%;
@@ -341,6 +329,7 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
   display: flex;
   flex-direction: column;
 }
+
 .editor__text-field {
   width: 100%;
   height: 100%;
@@ -350,23 +339,28 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
   font-size: 16px;
   font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
 }
+
 .monaco-editor {
   width: 100% !important;
   height: 100% !important;
 }
+
 .monaco-editor-vue3 {
   width: 100% !important;
   height: 100% !important;
 }
+
 .preview {
   width: 50%;
   height: 100%;
   display: flex;
   flex-direction: column;
 }
+
 .preview__tabs {
   height: 48px;
 }
+
 .preview__content {
   height: calc(100vh - 48px);
   white-space: pre;
@@ -403,9 +397,11 @@ const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
   width: 100%;
   background-color: rgba(0, 0, 0, 0.8);
 }
+
 .preview__overlay__error {
   color: red;
 }
+
 iframe {
   border: none;
 }
