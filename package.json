@@ -4,13 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "npm run build-runtime && run-p type-check build-only",
+    "build": "run-p type-check build-only",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
-    "format": "prettier --write src/",
-    "build-runtime": "tsc --skipLibCheck --target es6 --module es6 --outDir public/runtime --esModuleInterop ./src/runtime/index.ts"
+    "format": "prettier --write src/"
   },
   "dependencies": {
     "vue": "^3.3.4"

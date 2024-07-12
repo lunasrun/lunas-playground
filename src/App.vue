@@ -10,7 +10,7 @@ import { options, readOnlyOptions } from './utils/monaco'
 import { decodeFiles, encodeFiles } from './utils/encode'
 import { loadFilesFromLocalStorage, saveFilesToLocalStorage, type ModuleFiles } from './utils/storage'
 import { sampleItems, type SampleItem } from './utils/samples'
-import runtimeText from './runtime/index.js?raw'
+import runtimeModule from './runtime/index.ts?tsraw'
 import inlineModule from './runtime/inline-module.js?raw'
 import { computed } from 'vue'
 
@@ -44,7 +44,7 @@ watch(
     previewCss.value = ''
 
     // clone text.value and add runtime file
-    const modules = text.value.slice().concat([{ filename: 'runtime', content: runtimeText, isBlveFile: false }])
+    const modules = text.value.slice().concat([{ filename: 'runtime', content: runtimeModule, isBlveFile: false }])
 
     for (let i in modules) {
       const file = modules[i]

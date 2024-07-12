@@ -1,6 +1,7 @@
 import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig } from 'vite'
+import { rawTsPlugin } from './vite-plugins/raw-ts'
 import vue from '@vitejs/plugin-vue'
 
 import wasm from 'vite-plugin-wasm'
@@ -10,7 +11,7 @@ const prefix = `monaco-editor/esm/vs`
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue(), wasm(), topLevelAwait()],
+  plugins: [vue(), wasm(), topLevelAwait(),rawTsPlugin()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
