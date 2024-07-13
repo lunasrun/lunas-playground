@@ -125,7 +125,7 @@ function addFile() {
 script:
 const message = "Hello Blve"
 `
-    , isBlveFile: false
+    , isBlveFile: true
   })
   activeFile.value = text.value.length - 1
 }
@@ -181,7 +181,7 @@ const iframeDoc = computed(
 
 async function loadSample(sampleItem: SampleItem) {
   if (!confirm('Are you sure to load this sample?')) return
-  const tmpText = []
+  const tmpText: ModuleFiles = []
   for (let file of sampleItem.files) {
     const loadedSample = await (await axios.get(`./samples/${file.onlinePath}`)).data
     tmpText.push({
