@@ -8,17 +8,16 @@ import axios from 'axios'
 import { primaryColor } from './utils/colors'
 import { options, readOnlyOptions } from './utils/monaco'
 import { decodeFiles, encodeFiles } from './utils/encode'
-import { loadFilesFromLocalStorage, saveFilesToLocalStorage, type ModuleFiles } from './utils/storage'
+import { loadFilesFromLocalStorage, saveFilesToLocalStorage, type BlveModuleFile, type EsModuleFile } from './utils/storage'
 import { sampleItems, type SampleItem } from './utils/samples'
 import runtimeModule from './runtime/index.ts?tsraw'
 import inlineModule from './runtime/inline-module.js?raw'
 import { computed } from 'vue'
 
-const text = ref<ModuleFiles>([
+const text = ref<BlveModuleFile[]>([
   {
     filename: 'App',
     content: '',
-    isBlveFile: true
   }
 ])
 
@@ -44,7 +43,14 @@ watch(
     previewCss.value = ''
 
     // clone text.value and add runtime file
-    const modules = text.value.slice().concat([{ filename: 'runtime', content: runtimeModule, isBlveFile: false }])
+    const modules: EsModuleFile[]
+      = text.value.map(((file: BlveModuleFile) => ({ ...file, isBlveFile: true }))).concat([
+        {
+          filename: 'runtime',
+          content: runtimeModule,
+          isBlveFile: false
+        }
+      ])
 
     for (let i in modules) {
       const file = modules[i]
@@ -125,7 +131,6 @@ function addFile() {
 script:
 const message = "Hello Blve"
 `
-    , isBlveFile: true
   })
   activeFile.value = text.value.length - 1
 }
@@ -152,7 +157,6 @@ style:
         {
           filename: 'App',
           content: defaultCode,
-          isBlveFile: true
         }
       ]
     }
@@ -181,13 +185,12 @@ const iframeDoc = computed(
 
 async function loadSample(sampleItem: SampleItem) {
   if (!confirm('Are you sure to load this sample?')) return
-  const tmpText: ModuleFiles = []
+  const tmpText: BlveModuleFile[] = []
   for (let file of sampleItem.files) {
     const loadedSample = await (await axios.get(`./samples/${file.onlinePath}`)).data
     tmpText.push({
       filename: file.filename,
       content: loadedSample,
-      isBlveFile: true
     })
   }
   text.value = tmpText
