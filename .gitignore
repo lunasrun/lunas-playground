@@ -32,3 +32,8 @@ coverage
 
 src/wasm/*
 src/runtime/index.ts
+
+*.env
+!*.example.env
+
+**/*.local.*
