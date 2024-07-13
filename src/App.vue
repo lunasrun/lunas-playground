@@ -140,13 +140,13 @@ onMounted(() => {
       text.value = localStorageCode
     } else {
       const defaultCode = `html:
-<div class="msg">\${ message }</div>
+  <div class="msg">\${ message }</div>
 script:
-const message = "Hello Blve"
+  const message = "Hello Blve"
 style:
-.msg {
-color: red;
-}
+  .msg {
+  color: red;
+  }
 `
       text.value = [
         {
