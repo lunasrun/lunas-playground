@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
 import MonacoEditor from 'monaco-editor-vue3'
-import { compile } from './wasm'
 import { copyText } from './utils/copy'
 import './utils/monaco'
 import axios from 'axios'
@@ -13,6 +12,7 @@ import { sampleItems, type SampleItem } from './utils/samples'
 import runtimeModule from './runtime/index.ts?tsraw'
 import inlineModule from './runtime/inline-module.js?raw'
 import { computed } from 'vue'
+import { blve_compile } from './utils/compile'
 
 const text = ref<BlveModuleFile[]>([
   {
@@ -37,7 +37,7 @@ watch(
     saveFilesToLocalStorage(text.value)
 
     // preview compile
-    const { js } = blve_compile(text.value[activeFile.value].content)
+    const { js } = await blve_compile(text.value[activeFile.value].content)
     codePreviewJs.value = js as string
     browserPreviewJs.value = ''
     previewCss.value = ''
@@ -56,7 +56,7 @@ watch(
       const file = modules[i]
       try {
         if (file.isBlveFile) {
-          const runtimeCompile = compile(file.content, '#runtime')
+          const runtimeCompile = await blve_compile(file.content, '#runtime')
           // eslint-disable-next-line no-useless-escape
           browserPreviewJs.value += `<script type="inline-module" id="${file.filename}">${runtimeCompile.js}<\/script>` + '\n'
           // FIXME: Use import map instead of this
@@ -85,31 +85,10 @@ watch(
   { deep: true }
 )
 
-watch(activeFile, () => {
-  const { js } = blve_compile(text.value[activeFile.value].content)
+watch(activeFile, async () => {
+  const { js } = await blve_compile(text.value[activeFile.value].content)
   codePreviewJs.value = js as string
 })
-
-function blve_compile(code: string): {
-  js: string | undefined
-  css: string | undefined
-  err: string | undefined
-} {
-  try {
-    const { js, css } = compile(code)
-    return {
-      js: js,
-      css: css,
-      err: undefined
-    }
-  } catch (e) {
-    return {
-      err: String(e),
-      js: undefined,
-      css: undefined
-    }
-  }
-}
 
 function addFile() {
   const filename = prompt('Enter filename')
