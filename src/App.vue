@@ -13,6 +13,7 @@ import runtimeModule from './runtime/index.ts?tsraw'
 import inlineModule from './runtime/inline-module.js?raw'
 import { computed } from 'vue'
 import { blve_compile } from './utils/compile'
+import { enableDevServer } from './utils/env'
 
 const text = ref<BlveModuleFile[]>([
   {
@@ -198,7 +199,19 @@ function deleteFile(index: number) {
   text.value.splice(index, 1)
 }
 
-const title = import.meta.env.DEV ? 'Blve Playground (Dev)' : 'Blve Playground'
+const title = (() => {
+  console.log('Server Mode Enabled');
+  let title = 'Blve Playground'
+  if (import.meta.env.DEV) {
+    title += ' (Dev'
+    if (enableDevServer) {
+      title += ' + Server Mode'
+    }
+    title += ')'
+  }
+  return title
+})()
+
 </script>
 
 <template>
