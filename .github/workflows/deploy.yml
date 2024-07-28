@@ -19,6 +19,8 @@ jobs:
       - name: Install wasm-pack
         run: |
           curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: Install Task
+        uses: arduino/setup-task@v2
       - name: Build
         run: |
           task build-web
