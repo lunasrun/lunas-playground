@@ -61,8 +61,8 @@ watch(
           // eslint-disable-next-line no-useless-escape
           browserPreviewJs.value += `<script type="inline-module" id="${file.filename}">${runtimeCompile.js}<\/script>` + '\n'
           // FIXME: Use import map instead of this
-          // reolace "./{}.blv" to "#{}"
-          browserPreviewJs.value = browserPreviewJs.value.replace(/"\.\/(.*?)\.blv"/g, '"#$1"')
+          // reolace "./{}.lun" to "#{}"
+          browserPreviewJs.value = browserPreviewJs.value.replace(/"\.\/(.*?)\.lun"/g, '"#$1"')
           if (runtimeCompile.css) {
             previewCss.value += (runtimeCompile.css as string) + '\n'
           } else {
@@ -75,7 +75,7 @@ watch(
           browserPreviewJs.value += `<script type="inline-module" id="${file.filename}">${file.content}<\/script>` + '\n'
         }
       } catch (e) {
-        errMsg.value = 'Error occured in "' + file.filename + '.blv"\n\n' + e
+        errMsg.value = 'Error occured in "' + file.filename + '.lun"\n\n' + e
         isErr.value = true
         return
       }
@@ -239,7 +239,7 @@ const title = (() => {
         <div class="preview__tabs">
           <v-tabs v-model="activeFile" color="deep-purple-accent-4" :bg-color="primaryColor">
             <v-tab v-for="(file, index) in text" :key="file.filename" :value="index">
-              {{ file.filename }}.blv
+              {{ file.filename }}.lun
               <v-btn @click="deleteFile(index)" icon variant="text" v-if="index != 0 && activeFile == index">
                 <v-icon>mdi-delete</v-icon>
               </v-btn>

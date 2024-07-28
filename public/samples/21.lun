@@ -1,4 +1,4 @@
-@use Child from './Child.blv'
+@use Child from './Child.lun'
 html:
   <div class="parent">
     <button @click="showChild=!showChild">${showChild?"hide":"show"}</button>
