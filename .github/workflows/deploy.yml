@@ -21,7 +21,7 @@ jobs:
           curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - name: Build
         run: |
-          make build-web
+          task build-web
         working-directory: ./lunas
       - name: Upload Wasm Artifact
         uses: actions/upload-artifact@v2
@@ -32,7 +32,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: lunas-runtime
-          path: ./lunas/npm-pkg/src/runtime
+          path: ./lunas/npm-pkgs/lunas/src/runtime
   build-and-deploy-playground:
     runs-on: ubuntu-latest
     permissions:
@@ -62,6 +62,7 @@ jobs:
           path: ./src/runtime
       - name: Build
         run: |
+          cp .example.env .env
           npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v3
