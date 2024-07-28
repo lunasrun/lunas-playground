@@ -1,20 +1,20 @@
 import * as monaco from "monaco-editor";
-import blveHighlightingRules from "../syntaxes/blve.tmLanguage.json?raw";
-import blveHtmlHighlightingRules from "../syntaxes/text.html.blve.tmLanguage.json?raw";
+import lunasHighlightingRules from "../syntaxes/lunas.tmLanguage.json?raw";
+import lunasHtmlHighlightingRules from "../syntaxes/text.html.lunas.tmLanguage.json?raw";
 import { createHighlighter } from "shiki";
 import { shikiToMonaco } from "@shikijs/monaco";
 
 const highlighter = await createHighlighter({
   langs: [
-    JSON.parse(blveHighlightingRules),
-    JSON.parse(blveHtmlHighlightingRules),
+    JSON.parse(lunasHighlightingRules),
+    JSON.parse(lunasHtmlHighlightingRules),
     "typescript",
     "css",
   ],
   themes: ["github-light"],
 });
 
-monaco.languages.register({ id: "blve" });
+monaco.languages.register({ id: "lunas" });
 
 shikiToMonaco(highlighter, monaco);
 
@@ -25,7 +25,7 @@ shikiToMonaco(highlighter, monaco);
 // @ts-ignore
 
 // Optional: You can also add custom configuration for comments, auto-closing pairs, etc.
-monaco.languages.setLanguageConfiguration("blve", {
+monaco.languages.setLanguageConfiguration("lunas", {
   comments: {
     // define comment symbols if your language supports them
     lineComment: "//",

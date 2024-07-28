@@ -7,15 +7,15 @@ import axios from 'axios'
 import { primaryColor } from './utils/colors'
 import { options, readOnlyOptions } from './utils/monaco'
 import { decodeFiles, encodeFiles } from './utils/encode'
-import { loadFilesFromLocalStorage, saveFilesToLocalStorage, type BlveModuleFile, type EsModuleFile } from './utils/storage'
+import { loadFilesFromLocalStorage, saveFilesToLocalStorage, type LunasModuleFile, type EsModuleFile } from './utils/storage'
 import { sampleItems, type SampleItem } from './utils/samples'
 import runtimeModule from './runtime/index.ts?tsraw'
 import inlineModule from './runtime/inline-module.js?raw'
 import { computed } from 'vue'
-import { blve_compile } from './utils/compile'
+import { lunas_compile } from './utils/compile'
 import { enableDevServer } from './utils/env'
 
-const text = ref<BlveModuleFile[]>([
+const text = ref<LunasModuleFile[]>([
   {
     filename: 'App',
     content: '',
@@ -38,26 +38,26 @@ watch(
     saveFilesToLocalStorage(text.value)
 
     // preview compile
-    const { js } = await blve_compile(text.value[activeFile.value].content)
+    const { js } = await lunas_compile(text.value[activeFile.value].content)
     codePreviewJs.value = js as string
     browserPreviewJs.value = ''
     previewCss.value = ''
 
     // clone text.value and add runtime file
     const modules: EsModuleFile[]
-      = text.value.map(((file: BlveModuleFile) => ({ ...file, isBlveFile: true }))).concat([
+      = text.value.map(((file: LunasModuleFile) => ({ ...file, isLunasFile: true }))).concat([
         {
           filename: 'runtime',
           content: runtimeModule,
-          isBlveFile: false
+          isLunasFile: false
         }
       ])
 
     for (let i in modules) {
       const file = modules[i]
       try {
-        if (file.isBlveFile) {
-          const runtimeCompile = await blve_compile(file.content, '#runtime')
+        if (file.isLunasFile) {
+          const runtimeCompile = await lunas_compile(file.content, '#runtime')
           // eslint-disable-next-line no-useless-escape
           browserPreviewJs.value += `<script type="inline-module" id="${file.filename}">${runtimeCompile.js}<\/script>` + '\n'
           // FIXME: Use import map instead of this
@@ -87,7 +87,7 @@ watch(
 )
 
 watch(activeFile, async () => {
-  const { js } = await blve_compile(text.value[activeFile.value].content)
+  const { js } = await lunas_compile(text.value[activeFile.value].content)
   codePreviewJs.value = js as string
 })
 
@@ -109,7 +109,7 @@ function addFile() {
     content: `html:
 <div class="msg">\${ message }</div>
 script:
-const message = "Hello Blve"
+const message = "Hello Lunas"
 `
   })
   activeFile.value = text.value.length - 1
@@ -127,7 +127,7 @@ onMounted(() => {
       const defaultCode = `html:
   <div class="msg">\${ message }</div>
 script:
-  const message = "Hello Blve"
+  const message = "Hello Lunas"
 style:
   .msg {
   color: red;
@@ -165,7 +165,7 @@ const iframeDoc = computed(
 
 async function loadSample(sampleItem: SampleItem) {
   if (!confirm('Are you sure to load this sample?')) return
-  const tmpText: BlveModuleFile[] = []
+  const tmpText: LunasModuleFile[] = []
   for (let file of sampleItem.files) {
     const loadedSample = await (await axios.get(`./samples/${file.onlinePath}`)).data
     tmpText.push({
@@ -201,7 +201,7 @@ function deleteFile(index: number) {
 
 const title = (() => {
   console.log('Server Mode Enabled');
-  let title = 'Blve Playground'
+  let title = 'Lunas Playground'
   if (import.meta.env.DEV) {
     title += ' (Dev'
     if (enableDevServer) {
@@ -250,8 +250,8 @@ const title = (() => {
           </v-tabs>
         </div>
         <div class="editor__text-field">
-          <MonacoEditor theme="github-light" :options="options" language="blve" v-model:value="text[activeFile].content"
-            width="100%" height="100%">
+          <MonacoEditor theme="github-light" :options="options" language="lunas"
+            v-model:value="text[activeFile].content" width="100%" height="100%">
           </MonacoEditor>
         </div>
       </div>

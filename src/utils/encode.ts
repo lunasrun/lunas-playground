@@ -1,6 +1,6 @@
-import type { BlveModuleFile } from "./storage";
+import type { LunasModuleFile } from "./storage";
 
-export function encodeFiles(files: BlveModuleFile[]) {
+export function encodeFiles(files: LunasModuleFile[]) {
   const encodedFiles = encodeURIComponent(
     window.btoa(unescape(encodeURIComponent(JSON.stringify(files))))
   );
@@ -8,8 +8,8 @@ export function encodeFiles(files: BlveModuleFile[]) {
   return encodedFiles;
 }
 
-export function decodeFiles(encodedFiles: string): BlveModuleFile[] {
+export function decodeFiles(encodedFiles: string): LunasModuleFile[] {
   return JSON.parse(
     decodeURIComponent(escape(window.atob(decodeURIComponent(encodedFiles))))
-  ) as BlveModuleFile[];
+  ) as LunasModuleFile[];
 }

@@ -6,7 +6,7 @@ html:
     ${ message }
   </div>
 script:
-  const message = "Hello Blve"
+  const message = "Hello Lunas"
 style:
   .parent {
     border: solid red;

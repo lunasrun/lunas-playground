@@ -1,4 +1,4 @@
-export type BlveModuleFile = {
+export type LunasModuleFile = {
   filename: string;
   content: string;
 };
@@ -6,16 +6,16 @@ export type BlveModuleFile = {
 export type EsModuleFile = {
   filename: string;
   content: string;
-  isBlveFile: boolean;
+  isLunasFile: boolean;
 };
 
 const FILES_KEY = "files";
 
-export function saveFilesToLocalStorage(files: BlveModuleFile[]) {
+export function saveFilesToLocalStorage(files: LunasModuleFile[]) {
   localStorage.setItem(FILES_KEY, JSON.stringify(files));
 }
 
-export function loadFilesFromLocalStorage(): BlveModuleFile[] | null {
+export function loadFilesFromLocalStorage(): LunasModuleFile[] | null {
   const files = localStorage.getItem(FILES_KEY);
   if (!files) {
     return null;

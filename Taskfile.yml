@@ -11,5 +11,5 @@ tasks:
       - rm -r ./src/wasm/ || true
       - mkdir ./src/wasm/
       - cp $BLVE_PATH/npm-pkg/src/runtime/index.ts ./src/runtime/index.ts
-      - cp -r $BLVE_PATH/crates/blve_compiler/pkg/* ./src/wasm/
+      - cp -r $BLVE_PATH/crates/lunas_compiler/pkg/* ./src/wasm/
       - vite dev --force

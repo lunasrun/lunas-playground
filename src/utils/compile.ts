@@ -1,7 +1,7 @@
 import { compile } from "../wasm";
 import { devServerURL, enableDevServer } from "./env";
 
-export async function blve_compile(
+export async function lunas_compile(
   code: string,
   runtimePath?: string
 ): Promise<{

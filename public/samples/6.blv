@@ -1,7 +1,7 @@
 html:
   <div class="msg">${ message }</div>
 script:
-  const message = "Hello Blve"
+  const message = "Hello Lunas"
 style:
   .msg {
     color: red;

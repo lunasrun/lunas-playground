@@ -17,7 +17,7 @@ html:
     
   </div>
 script:
-  const message = "Hello Blve"
+  const message = "Hello Lunas"
   let showChild = false
   let showChild2 = false
 style:
