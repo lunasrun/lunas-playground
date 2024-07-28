@@ -34,7 +34,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: lunas-runtime
-          path: ./lunas/npm-pkgs/lunas/src/runtime
+          path: ./lunas/npm-pkgs/lunas/src/runtime/index.ts
   build-and-deploy-playground:
     runs-on: ubuntu-latest
     permissions:
