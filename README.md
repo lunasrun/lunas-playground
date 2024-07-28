@@ -1,10 +1,10 @@
-# Blve Playground
+# Lunas Playground
 
 ## Introduction
 
-This is a playground for Blve, a programming language that compiles to JavaScript.
+This is a playground for Lunas, a programming language that compiles to JavaScript.
 
-You can try it out at [Blve Playground](https://blvedev.github.io/blve-playground/).
+You can try it out at [Lunas Playground](https://lunas-dev.github.io/lunas-playground/).
 
 ## Development
 

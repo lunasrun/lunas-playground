@@ -4,14 +4,14 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-blve-wasm:
+  build-lunas-wasm:
     runs-on: ubuntu-latest
     steps:
-      - run: git clone https://github.com/blvedev/blve.git
+      - run: git clone https://github.com/lunas-dev/lunas.git
       - name: Use Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '18'
+          node-version: "18"
       - name: setup rust
         uses: actions-rs/toolchain@v1
         with:
@@ -21,54 +21,55 @@ jobs:
           curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - name: Build
         run: |
-          make build-web
-        working-directory: ./blve
+          task build-web
+        working-directory: ./lunas
       - name: Upload Wasm Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: blve-wasm-web-pkg
-          path: ./blve/crates/blve_compiler/pkg
+          name: lunas-wasm-web-pkg
+          path: ./lunas/crates/lunas_compiler/pkg
       - name: Upload Runtime Artifact
         uses: actions/upload-artifact@v2
         with:
-          name: blve-runtime
-          path: ./blve/npm-pkg/src/runtime
+          name: lunas-runtime
+          path: ./lunas/npm-pkgs/lunas/src/runtime
   build-and-deploy-playground:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       pages: write
       id-token: write
-    needs: build-blve-wasm
+    needs: build-lunas-wasm
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
       - name: Use Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '18'
+          node-version: "18"
       - name: Install dependencies
         run: |
           npm ci
-      - name: Download Blve Wasm Artifact
+      - name: Download Lunas Wasm Artifact
         uses: actions/download-artifact@v2
         with:
-          name: blve-wasm-web-pkg
+          name: lunas-wasm-web-pkg
           path: ./src/wasm
-      - name: Download Blve Runtime Artifact
+      - name: Download Lunas Runtime Artifact
         uses: actions/download-artifact@v2
         with:
-          name: blve-runtime
+          name: lunas-runtime
           path: ./src/runtime
       - name: Build
         run: |
+          cp .example.env .env
           npm run build
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: './dist'
+          path: "./dist"
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v1

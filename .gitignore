@@ -30,7 +30,10 @@ coverage
 *.sln
 *.sw?
 
-public/runtime/index.js
 src/wasm/*
+src/runtime/index.ts
 
-src/runtime
+*.env
+!*.example.env
+
+**/*.local.*

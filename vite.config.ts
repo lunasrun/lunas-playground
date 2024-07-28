@@ -1,22 +1,23 @@
-import { fileURLToPath, URL } from 'node:url'
+import { fileURLToPath, URL } from "node:url";
 
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import { defineConfig } from "vite";
+import { rawTsPlugin } from "./vite-plugins/raw-ts";
+import vue from "@vitejs/plugin-vue";
 
-import wasm from 'vite-plugin-wasm'
-import topLevelAwait from 'vite-plugin-top-level-await'
+import wasm from "vite-plugin-wasm";
+import topLevelAwait from "vite-plugin-top-level-await";
 
-const prefix = `monaco-editor/esm/vs`
+const prefix = `monaco-editor/esm/vs`;
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [vue(), wasm(), topLevelAwait()],
+  plugins: [vue(), wasm(), topLevelAwait(), rawTsPlugin()],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
-    }
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+    },
   },
-  base: './',
+  base: "./",
   build: {
     rollupOptions: {
       output: {
@@ -25,9 +26,19 @@ export default defineConfig({
           cssWorker: [`${prefix}/language/css/css.worker`],
           htmlWorker: [`${prefix}/language/html/html.worker`],
           tsWorker: [`${prefix}/language/typescript/ts.worker`],
-          editorWorker: [`${prefix}/editor/editor.worker`]
-        }
-      }
-    }
-  }
-})
+          editorWorker: [`${prefix}/editor/editor.worker`],
+        },
+      },
+    },
+  },
+  // proxy localhost:3030
+  server: {
+    proxy: {
+      "/api": {
+        target: "http://localhost:3030",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
+  },
+});
