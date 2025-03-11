@@ -6,6 +6,7 @@ import vue from "@vitejs/plugin-vue";
 
 import wasm from "vite-plugin-wasm";
 import topLevelAwait from "vite-plugin-top-level-await";
+import path from "node:path";
 
 const prefix = `monaco-editor/esm/vs`;
 
@@ -13,9 +14,37 @@ const prefix = `monaco-editor/esm/vs`;
 export default defineConfig({
   plugins: [vue(), wasm(), topLevelAwait(), rawTsPlugin()],
   resolve: {
-    alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
-    },
+    alias: [
+      { find: "@", replacement: path.resolve(__dirname, "./src") },
+      {
+        find: /^prettier$/,
+        replacement: path.resolve(
+          __dirname,
+          "./node_modules/prettier/standalone.js"
+        ),
+      },
+      {
+        find: /^prettier\/plugins\/html$/,
+        replacement: path.resolve(
+          __dirname,
+          "./node_modules/prettier/parser-html.js"
+        ),
+      },
+      {
+        find: /^prettier\/plugins\/typescript$/,
+        replacement: path.resolve(
+          __dirname,
+          "./node_modules/prettier/parser-typescript.js"
+        ),
+      },
+      {
+        find: /^prettier\/plugins\/babel$/,
+        replacement: path.resolve(
+          __dirname,
+          "./node_modules/prettier/parser-babel.js"
+        ),
+      },
+    ],
   },
   base: "./",
   build: {

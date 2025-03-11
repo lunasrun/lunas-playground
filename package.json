@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "esbuild": "^0.23.0",
+    "lunas-formatter": "^0.0.1-beta.3",
     "vue": "^3.3.4"
   },
   "devDependencies": {
