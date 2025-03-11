@@ -14,6 +14,7 @@ import inlineModule from './runtime/inline-module.js?raw'
 import { computed } from 'vue'
 import { lunas_compile } from './utils/compile'
 import { enableDevServer } from './utils/env'
+import { format as formatLunas } from 'lunas-formatter'
 
 const text = ref<LunasModuleFile[]>([
   {
@@ -113,6 +114,10 @@ const message = "Hello Lunas"
 `
   })
   activeFile.value = text.value.length - 1
+}
+
+async function formatDocument() {
+  text.value[activeFile.value].content = await formatLunas(text.value[activeFile.value].content)
 }
 
 onMounted(() => {
@@ -247,6 +252,10 @@ const title = (() => {
             <v-btn @click="addFile" icon variant="text">
               <v-icon>mdi-plus</v-icon>
             </v-btn>
+            <v-spacer></v-spacer>
+            <v-btn @click="formatDocument" icon variant="text">
+              <v-icon>mdi-broom</v-icon>
+            </v-btn>
           </v-tabs>
         </div>
         <div class="editor__text-field">
@@ -272,8 +281,10 @@ const title = (() => {
             <pre>{{ errMsg }}</pre>
           </span>
         </div>
-        <iframe v-if="previewScreenTab == 0" class="preview__content" sandbox="allow-scripts" ref="iframe"
-          :srcdoc="iframeDoc">
+        <iframe :style="{
+          visibility: previewScreenTab == 0 ? 'visible' : 'hidden',
+          height: previewScreenTab == 0 ? 'calc(100vh - 48px)' : '0'
+        }" class="preview__content" sandbox="allow-scripts" ref="iframe" :srcdoc="iframeDoc">
         </iframe>
         <div v-if="previewScreenTab == 1 && !isErr" class="preview__text preview__content">
           <MonacoEditor theme="vs" :options="readOnlyOptions" language="javascript" width="100%" height="100%"
