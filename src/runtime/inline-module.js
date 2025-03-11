@@ -34,6 +34,15 @@ function replaceImport(code, map) {
   });
 }
 
+// Blob作成時にsourceURLを追加して固定化
+function createBlob(code, type = "text/plain", moduleIdentifier = "anonymous") {
+  // ブレークポイント用に固定ファイル名を付与
+  code += `\n//# sourceURL=${moduleIdentifier}.js`;
+  const blob = new Blob([code], { type });
+  const blobURL = URL.createObjectURL(blob);
+  return blobURL;
+}
+
 function getBlobURL(module, replaceImportURL = false, map = {}) {
   let jsCode = module.textContent;
   if (module.hasAttribute("src")) {
@@ -53,22 +62,21 @@ function getBlobURL(module, replaceImportURL = false, map = {}) {
         sourceMap: true,
         filename: module.getAttribute("name") || module.id || "anonymous",
       });
-      if (sourceMap)
+      if (sourceMap) {
         code = `${resolved}\n\n//# sourceMappingURL=data:application/json;base64,${toBase64(
           JSON.stringify(sourceMap)
         )}`;
-      else code = resolved;
+      } else {
+        code = resolved;
+      }
       Object.assign(map.imports, imports);
       return code;
     }, jsCode);
   }
-  return createBlob(jsCode, "text/javascript");
-}
-
-function createBlob(code, type = "text/plain") {
-  const blob = new Blob([code], { type });
-  const blobURL = URL.createObjectURL(blob);
-  return blobURL;
+  // moduleIdentifier: 優先順位は id > name > "anonymous"
+  const moduleIdentifier =
+    module.id || module.getAttribute("name") || "anonymous";
+  return createBlob(jsCode, "text/javascript", moduleIdentifier);
 }
 
 function setup() {
@@ -89,11 +97,11 @@ function setup() {
     const url = getBlobURL(module, !!importMapEl, importMap);
     if (id) {
       importMap[`#${id}`] = url;
-      importMap[`//#${id}`] = url; // for some platform only support protocals
+      importMap[`//#${id}`] = url; // for some platform only support protocols
     }
     if (name) {
       importMap[name] = url;
-      importMap[`//${name}`] = url; // for some platform only support protocals
+      importMap[`//${name}`] = url; // for some platform only support protocols
     }
     loadModules.push(url);
   });
