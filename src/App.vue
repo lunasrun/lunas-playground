@@ -15,7 +15,7 @@ import { computed } from 'vue'
 import { lunas_compile } from './utils/compile'
 import { enableDevServer } from './utils/env'
 import { format as formatLunas } from 'lunas-formatter'
-
+import { v4 as uuid } from 'uuid'
 const text = ref<LunasModuleFile[]>([
   {
     filename: 'App',
@@ -36,11 +36,19 @@ const iframe = ref<HTMLIFrameElement | null>(null)
 watch(
   text,
   async () => {
+    if (activeFile.value >= text.value.length) {
+      activeFile.value = text.value.length - 1
+    }
+
+
     saveFilesToLocalStorage(text.value)
 
+    const importPathDummyString = uuid()
+
     // preview compile
-    const { js } = await lunas_compile(text.value[activeFile.value].content)
-    codePreviewJs.value = js as string
+    const { js: activeFileJs, css: activeFileCss } = await lunas_compile(text.value[activeFile.value].content, importPathDummyString)
+    const previewJs = activeFileJs?.replace(importPathDummyString, 'lunas/dist/runtime')
+    codePreviewJs.value = previewJs as string
     browserPreviewJs.value = ''
     previewCss.value = ''
 
@@ -57,8 +65,21 @@ watch(
     for (let i in modules) {
       const file = modules[i]
       try {
+
         if (file.isLunasFile) {
-          const runtimeCompile = await lunas_compile(file.content, '#runtime')
+          const runtimeCompile = await (async () => {
+            if (Number(i) == activeFile.value) {
+              return { js: activeFileJs?.replace(importPathDummyString, '#runtime'), css: activeFileCss }
+            } else {
+              return await lunas_compile(file.content, '#runtime')
+            }
+          })()
+          console.log(runtimeCompile);
+          // if (Number(i) == activeFile.value) {
+          //   const { js } = await lunas_compile(file.content)
+          //   codePreviewJs.value = js as string
+          // }
+          // const runtimeCompile = await
           // eslint-disable-next-line no-useless-escape
           browserPreviewJs.value += `<script type="inline-module" id="${file.filename}">${runtimeCompile.js}<\/script>` + '\n'
           // FIXME: Use import map instead of this
