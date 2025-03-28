@@ -74,12 +74,6 @@ watch(
               return await lunas_compile(file.content, '#runtime')
             }
           })()
-          console.log(runtimeCompile);
-          // if (Number(i) == activeFile.value) {
-          //   const { js } = await lunas_compile(file.content)
-          //   codePreviewJs.value = js as string
-          // }
-          // const runtimeCompile = await
           // eslint-disable-next-line no-useless-escape
           browserPreviewJs.value += `<script type="inline-module" id="${file.filename}">${runtimeCompile.js}<\/script>` + '\n'
           // FIXME: Use import map instead of this
