@@ -6,7 +6,7 @@
     "cypress.config.*",
     "nightwatch.conf.*",
     "playwright.config.*",
-    "/vite-plugins/**/*"
+    "vite-plugins/**/*"
   ],
   "compilerOptions": {
     "composite": true,

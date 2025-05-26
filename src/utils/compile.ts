@@ -3,7 +3,7 @@ import { devServerURL, enableDevServer } from "./env";
 
 export async function lunas_compile(
   code: string,
-  runtimePath?: string
+  enginePath?: string
 ): Promise<{
   js: string | undefined;
   css: string | undefined;
@@ -11,7 +11,7 @@ export async function lunas_compile(
 }> {
   try {
     if (!enableDevServer) {
-      const { js, css } = compile(code, runtimePath);
+      const { js, css } = compile(code, enginePath);
       return {
         js: js,
         css: css,
@@ -25,7 +25,7 @@ export async function lunas_compile(
         },
         body: JSON.stringify({
           code,
-          runtimePath,
+          enginePath,
         }),
       });
       if (!res.ok) {

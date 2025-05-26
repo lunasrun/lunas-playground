@@ -1,5 +1,3 @@
-import { fileURLToPath, URL } from "node:url";
-
 import { defineConfig } from "vite";
 import { rawTsPlugin } from "./vite-plugins/raw-ts";
 import vue from "@vitejs/plugin-vue";
@@ -69,5 +67,6 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/api/, ""),
       },
     },
+    port: 12390,
   },
 });
