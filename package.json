@@ -14,6 +14,7 @@
   "dependencies": {
     "esbuild": "^0.23.0",
     "lunas-formatter": "^0.0.1-beta.3",
+    "monaco-editor": "^0.52.2",
     "uuid": "^11.1.0",
     "vue": "^3.3.4"
   },
@@ -32,7 +33,6 @@
     "eslint-plugin-vue": "^9.11.0",
     "install": "^0.13.0",
     "material-design-icons-iconfont": "^6.7.0",
-    "monaco-editor-vue3": "^0.1.10s",
     "npm": "^10.8.2",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.8",
