@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import MonacoEditor from 'monaco-editor-vue3'
+import MonacoEditor from './components/MonacoEditor.vue'
 import { copyText } from './utils/copy'
 import './utils/monaco'
 import axios from 'axios'
