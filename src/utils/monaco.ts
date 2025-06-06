@@ -130,7 +130,6 @@ async function createLunasLanguageClient(
 export async function ensureLunasClientForModel(
   model: monaco.editor.ITextModel
 ) {
-  console.log(model.getLanguageId());
   if (model.getLanguageId() === "lunas") {
     if (!window.__lunasLanguageClient) {
       const worker = createLunasWorker();

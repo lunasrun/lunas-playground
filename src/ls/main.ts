@@ -387,8 +387,6 @@ function generateVirtualTsFromBlks(
   return { tempScript, mappings };
 }
 
-console.log("[Lunas Debug] LSP Server starting...");
-
 const scriptContents = new Map<string, string>();
 const scriptVersions = new Map<string, number>();
 // const tsConfigCache = new Map<string, ts.ParsedCommandLine>();
@@ -459,35 +457,6 @@ async function init() {
   let extraTypings: string[] = [];
 
   connection.onInitialize(() => {
-    console.log("on init");
-    console.log({
-      capabilities: {
-        textDocumentSync: TextDocumentSyncKind.Incremental,
-        completionProvider: {
-          resolveProvider: true,
-          triggerCharacters: [
-            "<",
-            "/",
-            " ",
-            ".",
-            '"',
-            "'",
-            "`",
-            "$",
-            "{",
-            ":",
-            "@",
-          ],
-        },
-        hoverProvider: true,
-        definitionProvider: true,
-      },
-      workspace: {
-        workspaceFolders: {
-          supported: true,
-        },
-      },
-    });
     // Node-specific logic removed for browser-compat.
     // extraTypings is always empty in browser/serverless environments.
     extraTypings = [];
