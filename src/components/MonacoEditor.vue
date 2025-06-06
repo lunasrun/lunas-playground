@@ -4,7 +4,7 @@
 
 <script>
 import { defineComponent, computed, toRefs } from 'vue'
-import * as monaco from 'monaco-editor'
+import * as monaco from '@codingame/monaco-vscode-editor-api'
 
 export default defineComponent({
   name: 'MonacoEditor',
@@ -51,17 +51,20 @@ export default defineComponent({
   },
   methods: {
     initMonaco() {
+      const model = monaco.editor.createModel(
+        "console.log('Hello Lunas');",
+        "lunas",
+        monaco.Uri.parse("inmemory://model/example.lunas")
+      );
       this.$emit('editorWillMount', monaco)
       const { value, language, theme, options } = this
-      this.editor = monaco.editor[
-        this.diffEditor ? 'createDiffEditor' : 'create'
-      ](this.$el, {
+      this.editor = monaco.editor.create(this.$el, {
+        model,
         value: value,
         language: language,
         theme: theme,
         ...options,
       })
-      this.diffEditor && this._setModel(this.value, this.original)
 
       // @event `change`
       const editor = this._getEditor()

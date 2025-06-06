@@ -5,7 +5,7 @@ import { copyText } from './utils/copy'
 import './utils/monaco'
 import axios from 'axios'
 import { primaryColor } from './utils/colors'
-import { ensureLunasClientForModel, options, readOnlyOptions } from './utils/monaco'
+import { options, readOnlyOptions } from './utils/monaco'
 import { decodeFiles, encodeFiles } from './utils/encode'
 import { loadFilesFromLocalStorage, saveFilesToLocalStorage, type LunasModuleFile, type EsModuleFile } from './utils/storage'
 import { sampleItems, type SampleItem } from './utils/samples'
@@ -23,7 +23,7 @@ const text = ref<LunasModuleFile[]>([
   }
 ])
 
-import * as monaco from "monaco-editor";
+// import * as monaco from '@codingame/monaco-vscode-editor-api';
 
 const activeFile = ref(0)
 const codePreviewJs = ref('')
@@ -168,11 +168,11 @@ style:
     window.history.replaceState({}, '', url.toString())
   }
 
-  setTimeout(() => {
-    for (const model of monaco.editor.getModels()) {
-      ensureLunasClientForModel(model);
-    }
-  }, 2000);
+  // setTimeout(() => {
+  //   for (const model of monaco.editor.getModels()) {
+  //     ensureLunasClientForModel(model);
+  //   }
+  // }, 2000);
 });
 
 const iframeDoc = computed(

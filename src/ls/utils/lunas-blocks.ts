@@ -1,6 +1,4 @@
 import * as ts from "typescript";
-import * as fs from "fs";
-import * as path from "path";
 
 export function extractScript(text: string): {
   script: string;
@@ -95,32 +93,26 @@ export function extractStyle(text: string): {
   };
 }
 
-export function findAndReadTSConfig(startPath: string): ts.ParsedCommandLine {
-  let dir = path.dirname(startPath);
-  while (true) {
-    const configPath = path.join(dir, "tsconfig.json");
-    if (fs.existsSync(configPath)) {
-      const configFile = ts.readConfigFile(configPath, ts.sys.readFile);
-      if (configFile.error) throw new Error("Failed to read tsconfig.json");
-      return ts.parseJsonConfigFileContent(configFile.config, ts.sys, dir);
-    }
-    const parent = path.dirname(dir);
-    if (parent === dir) break;
-    dir = parent;
-  }
-  return ts.parseJsonConfigFileContent({}, ts.sys, process.cwd());
+// Dummy implementation: returns an empty config
+export function findAndReadTSConfig(_startPath: string): ts.ParsedCommandLine {
+  return ts.parseJsonConfigFileContent({}, ts.sys, "/");
 }
 
+// Use only string manipulation, no path module
 export function getVirtualFilePath(documentUri: string): string {
   const realPath = new URL(documentUri).pathname;
-  const parsedPath = path.parse(realPath);
-  const virtualFileName = `.${parsedPath.name}.virtual.ts`;
-  return path.join(parsedPath.dir, virtualFileName);
+  const lastSlash = realPath.lastIndexOf("/");
+  const dir = lastSlash >= 0 ? realPath.slice(0, lastSlash) : "";
+  const file = lastSlash >= 0 ? realPath.slice(lastSlash + 1) : realPath;
+  const dot = file.lastIndexOf(".");
+  const name = dot >= 0 ? file.slice(0, dot) : file;
+  const virtualFileName = `.${name}.virtual.ts`;
+  return dir ? `${dir}/${virtualFileName}` : virtualFileName;
 }
 
 export function setActiveFileFromUri(
   uri: string,
-  setActive: (v: string) => void,
+  setActive: (_v: string) => void
 ) {
   setActive(getVirtualFilePath(uri));
 }

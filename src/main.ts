@@ -10,6 +10,7 @@ import * as directives from 'vuetify/directives'
 import '@mdi/font/css/materialdesignicons.css'
 import 'vscode/localExtensionHost'
 import { defaultApi } from 'vscode/localExtensionHost'
+import "@codingame/monaco-vscode-editor-api";
 
 defaultApi
 
