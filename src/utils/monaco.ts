@@ -3,6 +3,14 @@ import lunasHighlightingRules from "../syntaxes/lunas.tmLanguage.json?raw";
 import lunasHtmlHighlightingRules from "../syntaxes/text.html.lunas.tmLanguage.json?raw";
 import { createHighlighter } from "shiki";
 import { shikiToMonaco } from "@shikijs/monaco";
+import createLunasWorker from "./lunas.worker";
+import { MonacoLanguageClient } from "monaco-languageclient";
+import {
+  BrowserMessageReader,
+  BrowserMessageWriter,
+} from "vscode-languageserver/browser";
+import "vscode/localExtensionHost";
+import { initialize } from "@codingame/monaco-vscode-api";
 
 const highlighter = await createHighlighter({
   langs: [
@@ -59,6 +67,9 @@ import HtmlWorker from "monaco-editor/esm/vs/language/html/html.worker?worker";
 // @ts-ignore
 window.MonacoEnvironment = {
   getWorker(_: string, label: string) {
+    console.log("Creating worker for label:", label);
+    if (label === "lunas") return createLunasWorker();
+    if (label === "editorWorkerService") return new EditorWorker();
     if (label === "typescript" || label === "javascript") return new TsWorker();
     if (label === "json") return new JsonWorker();
     if (label === "css") return new CssWorker();
@@ -85,3 +96,70 @@ export const readOnlyOptions = {
 monaco.editor.onDidCreateEditor((editor) => {
   window.addEventListener("resize", () => editor.layout());
 });
+
+declare global {
+  interface Window {
+    __lunasLanguageClient?: MonacoLanguageClient;
+  }
+}
+
+async function createLunasLanguageClient(
+  monacoInstance: typeof monaco,
+  worker: Worker
+) {
+  await initialize(monacoInstance);
+  const reader = new BrowserMessageReader(worker);
+  const writer = new BrowserMessageWriter(worker);
+  return new MonacoLanguageClient({
+    name: "Lunas Language Client",
+    clientOptions: {
+      documentSelector: [{ language: "lunas" }],
+      errorHandler: {
+        error: () => ({ action: 1 }), // Continue
+        closed: () => ({ action: 2 }), // Restart
+      },
+    },
+    messageTransports: {
+      reader,
+      writer,
+    },
+  }); // Use 'as any' to bypass type error if needed
+}
+
+// --- Lunas LS client auto-start for all models (new and existing) ---
+export async function ensureLunasClientForModel(
+  model: monaco.editor.ITextModel
+) {
+  console.log(model.getLanguageId());
+  if (model.getLanguageId() === "lunas") {
+    if (!window.__lunasLanguageClient) {
+      const worker = createLunasWorker();
+      await new Promise<void>((resolve) => {
+        const onReady = (event: MessageEvent) => {
+          if (event.data?.type === "ready") {
+            worker.removeEventListener("message", onReady);
+            resolve();
+          }
+        };
+        worker.addEventListener("message", onReady);
+      });
+      window.__lunasLanguageClient = await createLunasLanguageClient(
+        monaco,
+        worker
+      );
+      window.__lunasLanguageClient.start();
+    }
+  }
+}
+
+monaco.editor.onDidCreateModel((model) => {
+  ensureLunasClientForModel(model);
+});
+
+// --- Patch: Avoid MonacoLanguageClient auto-attach in browser ---
+// See: https://github.com/microsoft/monaco-languageclient/issues/1002
+// Prevent 'Default api is not ready yet' error in browser
+if ((window as any).MonacoServices) {
+  // @ts-ignore
+  (window as any).MonacoServices.install = () => {};
+}

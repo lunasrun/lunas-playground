@@ -459,6 +459,35 @@ async function init() {
   let extraTypings: string[] = [];
 
   connection.onInitialize(() => {
+    console.log("on init");
+    console.log({
+      capabilities: {
+        textDocumentSync: TextDocumentSyncKind.Incremental,
+        completionProvider: {
+          resolveProvider: true,
+          triggerCharacters: [
+            "<",
+            "/",
+            " ",
+            ".",
+            '"',
+            "'",
+            "`",
+            "$",
+            "{",
+            ":",
+            "@",
+          ],
+        },
+        hoverProvider: true,
+        definitionProvider: true,
+      },
+      workspace: {
+        workspaceFolders: {
+          supported: true,
+        },
+      },
+    });
     // Node-specific logic removed for browser-compat.
     // extraTypings is always empty in browser/serverless environments.
     extraTypings = [];
@@ -518,7 +547,6 @@ async function init() {
 
   const tsService = ts.createLanguageService(tsHost);
 
-
   function prepareTemporaryScriptForExpression(
     originalScriptContent: string,
     expression: string,
@@ -567,8 +595,8 @@ async function init() {
     }
   }
 
-
   documents.onDidChangeContent(async (change) => {
+    console.log({ change });
     // Make async for potential async operations
     const text = change.document.getText();
     const uri = change.document.uri;
@@ -814,7 +842,6 @@ async function init() {
     // const charBeforeCursor = htmlContent.charAt(offsetInHtmlBlock - 1);
     // const charAfterCursor = htmlContent.charAt(offsetInHtmlBlock);
 
-
     const interpolationRegex = /\$\{([^}]*)\}/g;
     let match;
     while ((match = interpolationRegex.exec(htmlContent)) !== null) {
@@ -912,9 +939,7 @@ async function init() {
         setActiveFileFromUri(uri, (v) => (currentActiveVirtualFile = v));
         if (!currentActiveVirtualFile) return null;
         if (!scriptContents.has(currentActiveVirtualFile)) {
-          const {
-            script: currentFileScript,
-          } = extractScript(text);
+          const { script: currentFileScript } = extractScript(text);
           const currentFileInputs = extractInputs(text);
           const currentFileInputDeclarations =
             Object.entries(currentFileInputs)
@@ -1247,9 +1272,7 @@ async function init() {
       if (!currentActiveVirtualFile) return null;
       if (!scriptContents.has(currentActiveVirtualFile)) {
         // Ensure script content is loaded
-        const {
-          script: currentFileScript,
-        } = extractScript(text);
+        const { script: currentFileScript } = extractScript(text);
         const currentFileInputs = extractInputs(text);
         const currentFileInputDeclarations =
           Object.entries(currentFileInputs)
@@ -1460,9 +1483,7 @@ async function init() {
       if (!currentActiveVirtualFile) return null;
       if (!scriptContents.has(currentActiveVirtualFile)) {
         // Ensure script content is loaded
-        const {
-          script: currentFileScript,
-        } = extractScript(text);
+        const { script: currentFileScript } = extractScript(text);
         const currentFileInputs = extractInputs(text);
         const currentFileInputDeclarations =
           Object.entries(currentFileInputs)
@@ -1566,9 +1587,7 @@ async function init() {
       if (!currentActiveVirtualFile) return null;
       if (!scriptContents.has(currentActiveVirtualFile)) {
         // Ensure script content is loaded
-        const {
-          script: currentFileScript,
-        } = extractScript(text);
+        const { script: currentFileScript } = extractScript(text);
         const currentFileInputs = extractInputs(text);
         const currentFileInputDeclarations =
           Object.entries(currentFileInputs)
@@ -1910,6 +1929,11 @@ async function init() {
   connection.listen();
 }
 
-init().catch((err) => {
-  console.error("LSP Server initialization failed:", err);
-});
+init()
+  .then(() => {
+    console.log("LSP Server initialized");
+    self.postMessage({ type: "ready" });
+  })
+  .catch((err) => {
+    console.error("LSP Server initialization failed:", err);
+  });
