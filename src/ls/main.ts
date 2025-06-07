@@ -39,6 +39,7 @@ import {
   getVirtualFilePath,
   setActiveFileFromUri,
 } from "./utils/lunas-blocks";
+import { getLibDefinitionsByName } from "./utils/definitions";
 
 // --- Lunas template block parsing definitions ---
 type BlkNode = IfBlk | ForBlk | Expr;
@@ -459,7 +460,7 @@ async function init() {
   connection.onInitialize(() => {
     // Node-specific logic removed for browser-compat.
     // extraTypings is always empty in browser/serverless environments.
-    extraTypings = [];
+    extraTypings = ["lunas/dist/types/global.d.ts"];
     return {
       capabilities: {
         textDocumentSync: TextDocumentSyncKind.Incremental,
@@ -499,7 +500,15 @@ async function init() {
     getScriptVersion: (fileName) =>
       (scriptVersions.get(fileName) || 0).toString(),
     getScriptSnapshot: (fileName) => {
+      console.log(`[Lunas Debug] getScriptSnapshot called for: ${fileName}`);
+
+      const def = getLibDefinitionsByName(fileName);
+      if (def) {
+        return ts.ScriptSnapshot.fromString(def);
+      }
+
       const content = scriptContents.get(fileName);
+
       if (content !== undefined) {
         return ts.ScriptSnapshot.fromString(content);
       }
